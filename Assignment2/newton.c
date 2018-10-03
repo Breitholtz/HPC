@@ -3,10 +3,11 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
-#include "acb_poly.h"  //   http://arblib.org/acb_poly.html#acb-poly
-#include <math.h>      // void arb_fmpz_poly_complex_roots(acb_ptr roots, const fmpz_poly_t poly, int flags, slong prec)
+#include "acb_poly.h"  //   http://arblib.org/acb_poly.html#acb-poly     - necessary?
+#include <math.h>      
 #include "acb.h"
 #include "arb_fmpz_poly.h"
+#include "flint/arith.h" // necessary?
 struct arguments{
   int threads;
   int length;
@@ -14,7 +15,7 @@ struct arguments{
 
 };
 
-//struct arguments is what we use to pass out multiple returnvalues
+//struct arguments is what we use to pass out multiple return values
 struct arguments parse_args(char * args[]){
   
   char * rest1;
@@ -82,12 +83,13 @@ struct arguments parse_args(char * args[]){
 }
 
 void * threaded_newton(void * args){  // void * since we want it to work with threads
- 
+  free(args);
+  // Just change memory in the function and return nothing. pass array of the roots of the function so we don't compute roots for every thread?
 
 
-  // plan: break up square (-2,2)^2 into size intervals for x and y using cos(2pi*(n/d)) and sin(2pi*(n/d)), where n=0,...,d-1 ; compute which roots the function has with some library function;
+  // plan: break up square (-2,2)^2 into size intervals for x and y using cos(2pi*(n/d)) and sin(2pi*(n/d)), where n=0,...,d-1 ; compute which roots the function has with some library function (outside);
   // use newtons to approximate the root to 10^-3 precision (in absolute value)?; if divergent or very close to origin say that it converged to 0; note which root and how many iterations was necessary;
-  // pass info back as pointer(s)?
+  // 
   // actual iterative formula
   //
   // x_(k+1)=x_k-f(x_k)/f'(x_k), where f=x^d-1, f'=d*x^(d-1)
@@ -98,12 +100,41 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 }
 
 void * writeppm(void * args) { // void * since we want it to work with threads
+
+  // write the information into the desired .ppm format and output the file, call the one with colours corresponding to roots newton_attractor_xd.ppm and the other newton_convergence_xd.ppm
+  // where d in ..xd.pmm is the power of x
+  // pass in numroots which we know from computing the exact roots earlier
+  /*
+  const char *s1="newton_convergence_x";
+  const char *s3=".ppm";
+  
+    // numroots++ // one more for the case that we don't converge to a root
+  char s2[12];
+  sprintf(s2, "%d", power);
+ char * result = malloc(strlen(s1)+strlen(s2)+1);
+  strcpy(result, s1);  // memory
+  strcat(result, s2);
+  char * filename = malloc(strlen(result)+strlen(s3)+1);
+  strcpy(filename, result); //memory
+  strcat(filename, s3);
+  printf("final string: %s\n",filename);
+  FILE * fp  =fopen(filename,"w");
+  fprintf(fp,"P3\n%d %d\n%d\n",size,size,numroots); 
+
+  //fwrite the info that is available from the newton function
+
+
+  fclose(fp);
+  free(result);
+  free(filename);
+  */
   return NULL;
 }
 
 int main(int argc, char * argv[] ){
   // Grupp: hpcgp017
-  
+
+    
   int size;
   int thread_count;
   int power;
@@ -119,51 +150,96 @@ int main(int argc, char * argv[] ){
   size=A.length;
   thread_count=A.threads;
   power=A.power;
-  int numrows;
-  int numrest;
-  
+
+   
   // calculating amount of rows that will be available to each thread
-  if(size%thread_count==0){
-     numrows = size/thread_count;
-  }else{
-     numrest=size%thread_count;
-     numrows=size/thread_count;
-  }
+   int numrest=size%thread_count;
+   int numrows=size/thread_count;
 
-int roots[size*size];
-int iterations[size*size]; // ok or malloc here?
-int ret;
-pthread_t threads[thread_count];
-pthread_mutex_t mutex_root;
-pthread_mutex_t mutex_iter;
 
-pthread_mutex_init(&mutex_root, NULL); // mutex for accessing the root array
-pthread_mutex_init(&mutex_iter,NULL); //  mutex for accessing the iteration array
+   int roots[size*size];      // ok or malloc here?
+   int iterations[size*size]; // ok or malloc here?
+   int ret;
+   pthread_t threads[thread_count]; // create more for writing to file etc?
+   pthread_mutex_t mutex_root;
+   pthread_mutex_t mutex_iter;
 
+   pthread_mutex_init(&mutex_root, NULL); // mutex for accessing the root array
+   pthread_mutex_init(&mutex_iter,NULL); //  mutex for accessing the iteration array
+
+ 
+
+// precalculate the roots to the chosen polynomial
+   
+   fmpz_poly_t f;
+   fmpz_poly_factor_t fac;
+   acb_ptr roots_exact;
+   slong i, deg, prec;
+
+   prec=2; // what should the precision be??
+   fmpz_poly_init(f);
+   
+   fmpz_poly_set_coeff_ui (f , power , 1);
+   fmpz_poly_set_coeff_si (f , 0 , -1);
+   fmpz_poly_print (f); flint_printf (" \n ");
+   
+   fmpz_poly_factor_init(fac);
+   
+   flint_printf("computing squarefree factorization...\n");
+   fmpz_poly_factor_squarefree(fac, f);
+   
+
+   for (i = 0; i < fac->num; i++) {
+     deg = fmpz_poly_degree(fac->p + i);
+     flint_printf("%wd roots of multiplicity %wd\n", deg, fac->exp[i]);
+     roots_exact = _acb_vec_init(deg);
+     arb_fmpz_poly_complex_roots(roots_exact, fac->p + i, 0, prec);
+     _acb_vec_clear(roots_exact, deg);
+   }
+   
+    fmpz_poly_factor_clear(fac);
+    fmpz_poly_clear(f);
+  
+// roots_exact =....
+
+
+
+
+ 
 // do first thread with the extra rows that may exist if #rows is not divisible by #threads
+ int numrows_first = numrows+numrest;
   int ** arg = malloc(3*sizeof(int*));
   arg[0] = roots;
   arg[1] = iterations;
   arg[2] = &power;
-  //  arg[3] = roots_exact;
+  arg[3] = &numrows_first;
+  //  arg[4] = roots_exact;
   if (ret = pthread_create(threads, NULL, threaded_newton, (void*)arg)) {
     printf("Error creating thread: %\n", ret);
     exit(1);
   }
 
+  
+  
 // do the rest of the threads
-  for (size_t tx=1, ix=(numrows+numrest); tx < thread_count; ++tx, ix+=numrows){ 
+  for (size_t tx=1, ix=numrows_first; tx < thread_count; ++tx, ix+=numrows){ 
   int ** arg = malloc(3*sizeof(int*));
   arg[0] = roots+ix;
   arg[1] = iterations+ix;
   arg[2] = &power;
-  //  arg[3] = roots_exact;
-  if (ret = pthread_create(threads+tx, NULL, threaded_newton, (void*)arg)) {
-    printf("Error creating thread: %\n", ret);
-    exit(1);
-  }
+  arg[3] = &numrows;
+  //  arg[4] = roots_exact;
+    if (ret = pthread_create(threads+tx, NULL, threaded_newton, (void*)arg)) {
+      printf("Error creating thread: %\n", ret);
+      exit(1);
+    }
   }
 
+
+  
+  return 0;
+}
+/*   uncommment when threads terminate
   // joining threads
   for (size_t tx=0; tx < thread_count; ++tx) {
     if (ret = pthread_join(threads[tx], NULL)) {
@@ -171,35 +247,12 @@ pthread_mutex_init(&mutex_iter,NULL); //  mutex for accessing the iteration arra
       exit(1);
     }
   }
+*/
   pthread_mutex_destroy(&mutex_root);
   pthread_mutex_destroy(&mutex_iter);
   
-   //  threaded_newton(power, size); // return type? None, and just change memory in the function and return nothing. pass array of the roots of the function so we don't compute roots for every thread?
-
-  // write the information into the desired .ppm format and output the file, call the one with colours corresponding to roots newton_attractor_xd.ppm and the other newton_convergence_xd.ppm
-  // where d in ..xd.pmm is the power of x
-
-  // TODO: factor out into function ppmwrite so it may be threaded, also make better assembly of filename
-
-  const char *s1="newton_convergence_x";
-  const char *s3=".ppm";
-  
-  char s2[12];
-  sprintf(s2, "%d", power);
- char * result = malloc(strlen(s1)+strlen(s2)+1);
-  strcpy(result, s1);  // memory
-  strcat(result, s2);
-  char * filename = malloc(strlen(result)+strlen(s3)+1);
-  strcpy(filename, result); //memory
-  strcat(filename, s3);
-  printf("final string: %s\n",filename);
-  FILE * fp  =fopen(filename,"w");
-  fprintf(fp,"P3\n%d %d\n255\n",size,size);
-  //fwrite
-  fclose(fp);
-  free(result);
-  free(filename);
   
   return 0;
   
 }
+  
