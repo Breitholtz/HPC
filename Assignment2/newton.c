@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
-#include <acb_poly.h>   //   http://arblib.org/acb_poly.html#acb-poly
+//#include <acb_poly.h>   //   http://arblib.org/acb_poly.html#acb-poly
+#include <math.h>
 
 struct arguments{
   int threads;
@@ -21,7 +22,7 @@ struct arguments parse_args(char * args[]){
 
 
   // argument 1
-  printf(" args1 %s first %c second %c  \n",args[1],*args[1],  *(args[1]+1));
+  //  printf(" args1 %s first %c second %c  \n",args[1],*args[1],  *(args[1]+1));
   long res1;
   if(strncmp(args[1], "-t",2)==0){ // then take the rest of the string and convert to long
     
@@ -29,8 +30,8 @@ struct arguments parse_args(char * args[]){
    strncpy(T,args[1]+2,strlen(args[1])-2);
    T[strlen(args[1])-2]='\0';
    res1 = strtol(T,&rest1,10);
-   if(strcmp(rest1,"")!=0){
-     printf("Junk %s at end of argument 1!\n",rest1);
+   if(strcmp(rest1,"")!=0 || res1<1){
+     printf("Invalid argument '%ld' or Junk '%s' at end of argument 1!\n",res1,rest1);
    }else{
    printf(" arg1 is %d\n",(int)res1);
    }
@@ -47,8 +48,8 @@ struct arguments parse_args(char * args[]){
    strncpy(T,args[2]+2,strlen(args[2])-2);
    T[strlen(args[2])-2]='\0';
     res2 = strtol(T,&rest2,10);
-   if(strcmp(rest2,"")!=0){
-     printf("Junk %s at end of argument 2!\n",rest2);
+   if(strcmp(rest2,"")!=0 || res2<1){
+     printf("Invalid argument '%ld' or Junk '%s' at end of argument 2!\n",res2,rest2);
    }else{
    printf(" arg2 is %d\n",(int)res2);
    }
@@ -58,8 +59,8 @@ struct arguments parse_args(char * args[]){
 
  // argument 3    
    long res3 = strtol(args[3],&rest3,10);
-   if(strcmp(rest3,"")!=0){
-     printf("Junk %s at end of argument 3!\n",rest3);
+   if(strcmp(rest3,"")!=0 || res3<1){
+     printf("Invalid argument '%ld' or Junk '%s' at end of argument 3!\n",res3,rest3);
    }else{
    printf(" arg3 is %d\n",(int)res3);
    }
@@ -70,14 +71,15 @@ struct arguments parse_args(char * args[]){
    A.threads=(int)res1;
    A.length=(int)res2;
    A.power=(int)res3;
-  //free(args);
-   //return;
+  //free(args); // we should free something here probably...
    return A;  
 }
 
 void threaded_newton(int threads, int d, int size){
 
-  // plan: break up square (-2,2)^2 into size intervals for x and y; allocate memory for this many entries (*double)?; compute which roots the function has with some library function;
+
+  
+  // plan: break up square (-2,2)^2 into size intervals for x and y using cos(2pi*(n/d)) and sin(2pi*(n/d)), where n=0,...,d-1 ; compute which roots the function has with some library function;
   // use newtons to approximate the root to 10^-3 precision (in absolute value)?; if divergent or very close to origin say that it converged to 0; note which root and how many iterations was necessary;
   // pass info back as pointer(s)?
   // actual iterative formula
@@ -106,7 +108,10 @@ int main(int argc, char * argv[] ){
   A.threads=threads;
   A.power=power;
 
-  threaded_newton(threads, power); // return type? *double (for which roots we conv to) and *int (for number of iterations) maybe?
+  int * coeffs[power+1];
+    //acb_poly_t poly;
+    //poly.coeffs=coeffs;
+  threaded_newton(threads, power, size); // return type? *double (for which roots we conv to) and *int (for number of iterations) maybe?
   // pass pointer to a row to thread? pass array of the roots of the function?
 
   // write the information into the desired .ppm format and output the file, call the one with colours corresponding to roots newton_attractor_xd.ppm and the other newton_convergence_xd.ppm
