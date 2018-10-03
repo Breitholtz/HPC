@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
-
+#include <acb_poly.h>   //   http://arblib.org/acb_poly.html#acb-poly
 
 struct arguments{
   int threads;
@@ -75,10 +75,23 @@ struct arguments parse_args(char * args[]){
    return A;  
 }
 
+void threaded_newton(int threads, int d, int size){
 
+  // plan: break up square (-2,2)^2 into size intervals for x and y; allocate memory for this many entries (*double)?; compute which roots the function has with some library function;
+  // use newtons to approximate the root to 10^-3 precision (in absolute value)?; if divergent or very close to origin say that it converged to 0; note which root and how many iterations was necessary;
+  // pass info back as pointer(s)?
+  // actual iterative formula
+  //
+  // x_(k+1)=x_k-f(x_k)/f'(x_k), where f=x^d-1
+  //
+  
+
+  return;
+}
 
 int main(int argc, char * argv[] ){
-
+  // Grupp: hpcgp017
+  
   int size;
   int threads;
   int power;
@@ -88,6 +101,16 @@ int main(int argc, char * argv[] ){
   struct arguments A;
    A=parse_args(argv);
   printf("-------------------Arguments parsed----------------\n");
-  printf("Arguments: 1:%d 2:%d 3:%d\n",A.threads, A.length, A.power);
+  printf("Arguments: 1:%d 2:%d 3:%d\n",A.threads, A.length, A.power); // remove later
+  A.length=size;
+  A.threads=threads;
+  A.power=power;
+
+  threaded_newton(threads, power); // return type? *double (for which roots we conv to) and *int (for number of iterations) maybe?
+  // pass pointer to a row to thread? pass array of the roots of the function?
+
+  // write the information into the desired .ppm format and output the file, call the one with colours corresponding to roots newton_attractor_xd.ppm and the other newton_convergence_xd.ppm
+  // where d in ..xd.pmm is the power of x
+
   return 0;
 }
