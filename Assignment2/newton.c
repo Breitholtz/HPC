@@ -2,9 +2,10 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
-//#include <acb_poly.h>   //   http://arblib.org/acb_poly.html#acb-poly
-#include <math.h>
-
+#include "acb_poly.h"  //   http://arblib.org/acb_poly.html#acb-poly
+#include <math.h>      // void arb_fmpz_poly_complex_roots(acb_ptr roots, const fmpz_poly_t poly, int flags, slong prec)
+#include "acb.h"
+#include "arb_fmpz_poly.h"
 struct arguments{
   int threads;
   int length;
@@ -32,11 +33,13 @@ struct arguments parse_args(char * args[]){
    res1 = strtol(T,&rest1,10);
    if(strcmp(rest1,"")!=0 || res1<1){
      printf("Invalid argument '%ld' or Junk '%s' at end of argument 1!\n",res1,rest1);
+     exit(1);
    }else{
    printf(" arg1 is %d\n",(int)res1);
    }
   }else{
   printf("Missing -t flag for first argument!!!\n");
+  exit(1);
  }
 
 
@@ -50,17 +53,20 @@ struct arguments parse_args(char * args[]){
     res2 = strtol(T,&rest2,10);
    if(strcmp(rest2,"")!=0 || res2<1){
      printf("Invalid argument '%ld' or Junk '%s' at end of argument 2!\n",res2,rest2);
+     exit(1);
    }else{
    printf(" arg2 is %d\n",(int)res2);
    }
   }else{
   printf("Missing -l flag for second argument!!!\n");
+  exit(1);
  }
 
  // argument 3    
    long res3 = strtol(args[3],&rest3,10);
    if(strcmp(rest3,"")!=0 || res3<1){
      printf("Invalid argument '%ld' or Junk '%s' at end of argument 3!\n",res3,rest3);
+     exit(1);
    }else{
    printf(" arg3 is %d\n",(int)res3);
    }
@@ -84,7 +90,7 @@ void threaded_newton(int threads, int d, int size){
   // pass info back as pointer(s)?
   // actual iterative formula
   //
-  // x_(k+1)=x_k-f(x_k)/f'(x_k), where f=x^d-1
+  // x_(k+1)=x_k-f(x_k)/f'(x_k), where f=x^d-1, f'=d*x^(d-1)
   //
   
 
@@ -108,9 +114,18 @@ int main(int argc, char * argv[] ){
   A.threads=threads;
   A.power=power;
 
-  int * coeffs[power+1];
-    //acb_poly_t poly;
-    //poly.coeffs=coeffs;
+  int  coeffs[power+1];
+  coeffs[0]=-1;
+  coeffs[power]=1;
+  for(size_t i=1;i<power;i++){
+    coeffs[i]=0;
+  }
+    acb_poly_t poly;
+    //poly->coeffs=&coeffs;
+    printf("coeffs: %p length: %p\n",poly->coeffs,poly->length);
+
+
+    
   threaded_newton(threads, power, size); // return type? *double (for which roots we conv to) and *int (for number of iterations) maybe?
   // pass pointer to a row to thread? pass array of the roots of the function?
 
