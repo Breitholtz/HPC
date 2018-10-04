@@ -102,15 +102,19 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 void * writeppm(void * args) { // void * since we want it to work with threads
 
   // write the information into the desired .ppm format and output the file, call the one with colours corresponding to roots newton_attractor_xd.ppm and the other newton_convergence_xd.ppm
-  // where d in ..xd.pmm is the power of x
+  // where d in _xd.pmm is the power of x
+  
   // pass in numroots which we know from computing the exact roots earlier
-  /*
+  int * power= ((int**)args)[1];
+  int * numroots=((int**)args)[0];
+  int * size = ((int**)args)[2];
+  free(args);
   const char *s1="newton_convergence_x";
   const char *s3=".ppm";
   
     // numroots++ // one more for the case that we don't converge to a root
   char s2[12];
-  sprintf(s2, "%d", power);
+  sprintf(s2, "%d", *power);
  char * result = malloc(strlen(s1)+strlen(s2)+1);
   strcpy(result, s1);  // memory
   strcat(result, s2);
@@ -127,7 +131,7 @@ void * writeppm(void * args) { // void * since we want it to work with threads
   fclose(fp);
   free(result);
   free(filename);
-  */
+  
   return NULL;
 }
 
@@ -159,14 +163,15 @@ int main(int argc, char * argv[] ){
 
    int roots[size*size];      // ok or malloc here?
    int iterations[size*size]; // ok or malloc here?
+   int rows_done[size];
    int ret;
-   pthread_t threads[thread_count]; // create more for writing to file etc?
-   pthread_mutex_t mutex_root;
-   pthread_mutex_t mutex_iter;
-
-   pthread_mutex_init(&mutex_root, NULL); // mutex for accessing the root array
-   pthread_mutex_init(&mutex_iter,NULL); //  mutex for accessing the iteration array
-
+   pthread_t threads[thread_count+1]; // create one extra for writing to file
+   pthread_mutex_t mutex_data;
+   //pthread_mutex_t mutex_iter;
+   //   pthread_mutex_t mutex_write;
+   pthread_mutex_init(&mutex_data, NULL); // mutex for accessing the root array
+   //pthread_mutex_init(&mutex_iter,NULL); //  mutex for accessing the iteration array
+   //pthread_mutex_init(&mutex_write, NULL); // mutex for accessing the rows_done array
  
 
 // precalculate the roots to the chosen polynomial
@@ -201,20 +206,28 @@ int main(int argc, char * argv[] ){
     fmpz_poly_clear(f);
   
 // roots_exact =....
+//    printf("roots %wd")
 
 
+// do writing thread
 
-
- 
+    int ** arg = malloc((2*sizeof(int*)));
+    arg[0]=0; // num roots
+    arg[1]=&power; // exponent
+    arg[2]=&size; // length
+     if (ret = pthread_create(threads+thread_count, NULL, writeppm, (void*)arg)) {
+    printf("Error creating thread: %\n", ret);
+    exit(1);
+  }
 // do first thread with the extra rows that may exist if #rows is not divisible by #threads
  int numrows_first = numrows+numrest;
-  int ** arg = malloc(3*sizeof(int*));
-  arg[0] = roots;
-  arg[1] = iterations;
-  arg[2] = &power;
-  arg[3] = &numrows_first;
+ double ** args = malloc((4*sizeof(double*)));
+  args[0] = (double*)roots;
+  args[1] = (double*)iterations;
+  args[2] = (double*)&power;
+  args[3] = (double*)&numrows_first;
   //  arg[4] = roots_exact;
-  if (ret = pthread_create(threads, NULL, threaded_newton, (void*)arg)) {
+  if (ret = pthread_create(threads, NULL, threaded_newton, (void*)args)) {
     printf("Error creating thread: %\n", ret);
     exit(1);
   }
@@ -223,23 +236,19 @@ int main(int argc, char * argv[] ){
   
 // do the rest of the threads
   for (size_t tx=1, ix=numrows_first; tx < thread_count; ++tx, ix+=numrows){ 
-  int ** arg = malloc(3*sizeof(int*));
-  arg[0] = roots+ix;
-  arg[1] = iterations+ix;
-  arg[2] = &power;
-  arg[3] = &numrows;
+  double ** arg = malloc(4*sizeof(double*));
+  arg[0] = (double*)roots+ix;
+  arg[1] = (double*)iterations+ix;
+  arg[2] = (double*)&power;
+  arg[3] = (double*)&numrows;
+  //  arg[4] = 
   //  arg[4] = roots_exact;
     if (ret = pthread_create(threads+tx, NULL, threaded_newton, (void*)arg)) {
       printf("Error creating thread: %\n", ret);
       exit(1);
     }
   }
-
-
-  
-  return 0;
-}
-/*   uncommment when threads terminate
+  //   uncommment when threads terminate
   // joining threads
   for (size_t tx=0; tx < thread_count; ++tx) {
     if (ret = pthread_join(threads[tx], NULL)) {
@@ -247,10 +256,10 @@ int main(int argc, char * argv[] ){
       exit(1);
     }
   }
-*/
-  pthread_mutex_destroy(&mutex_root);
-  pthread_mutex_destroy(&mutex_iter);
-  
+
+  pthread_mutex_destroy(&mutex_data);
+  //pthread_mutex_destroy(&mutex_iter);
+  //  pthread_mutex_destroy(&mutex_write)
   
   return 0;
   
