@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -14,6 +13,23 @@ struct arguments{
   int power;
 
 };
+
+
+struct newton_arguments{
+  float ** roots;
+  int  ** iterations;
+  int * power;
+  float ** roots_exact;
+  int * index;
+  int * rowsize;
+  int * num_rows;
+};
+  struct write_arguments{
+    int * power;
+    int * size;
+  };
+
+
 
 //struct arguments is what we use to pass out multiple return values
 struct arguments parse_args(char * args[]){
@@ -83,7 +99,7 @@ struct arguments parse_args(char * args[]){
 }
 
 void * threaded_newton(void * args){  // void * since we want it to work with threads
-  free(args);
+  //free(args);
   // Just change memory in the function and return nothing. pass array of the roots of the function so we don't compute roots for every thread?
 
 
@@ -105,33 +121,35 @@ void * writeppm(void * args) { // void * since we want it to work with threads
   // where d in _xd.pmm is the power of x
   
   // pass in numroots which we know from computing the exact roots earlier
-  int * power= ((int**)args)[1];
-  int * numroots=((int**)args)[0];
-  int * size = ((int**)args)[2];
-  free(args);
-  const char *s1="newton_convergence_x";
-  const char *s3=".ppm";
-  
+
+  struct write_arguments *arguments =args;
+  int * power= arguments->power;
+  int * size = arguments->size;
+  //free(args);
+
     // numroots++ // one more for the case that we don't converge to a root
-  char s2[12];
-  sprintf(s2, "%d", *power);
- char * result = malloc(strlen(s1)+strlen(s2)+1);
-  strcpy(result, s1);  // memory
-  strcat(result, s2);
-  char * filename = malloc(strlen(result)+strlen(s3)+1);
-  strcpy(filename, result); //memory
-  strcat(filename, s3);
-  printf("final string: %s\n",filename);
-  FILE * fp  =fopen(filename,"w");
-  fprintf(fp,"P3\n%d %d\n%d\n",size,size,numroots); 
-
-  //fwrite the info that is available from the newton function
-
-
+  char str[26];
+  sprintf(str, "newton_attractors_x%i.ppm", *power);
+  FILE * fp  =fopen(str,"w");
+  fprintf(fp,"P3\n%d %d\n%d\n",size,size,*power);
   fclose(fp);
-  free(result);
-  free(filename);
+  sprintf(str, "newton_convergence_x%i.ppm", *power);  
+  FILE * fp2  =fopen(str,"w");
+  fprintf(fp2,"P3\n%d %d\n%d\n",size,size, *power); 
+  fclose(fp2);
+
   
+  //fwrite the info that is available from the newton function
+  // int sum_array=0;
+  // while(sum_array<2*size)
+  // sum_array=0;
+  //  pause to let threads finish rows?
+  // mutex_lock(&mutex_write);
+  // -check if any entries in array has been set to 1
+  // - if found entry: set entry to 2 and write that row to file
+  //  mutex_unlock(&mutex_write);
+  //  end while
+ 
   return NULL;
 }
 
@@ -161,94 +179,87 @@ int main(int argc, char * argv[] ){
    int numrows=size/thread_count;
 
 
-   int roots[size*size];      // ok or malloc here?
-   int iterations[size*size]; // ok or malloc here?
-   int rows_done[size];
+   float * roots_mat =malloc(sizeof(int*)*size*size);
+   float ** roots = (float**) malloc(sizeof(float*)*size);
+   int * iterations=malloc(sizeof(int*)*size*size);
+   int ** iter = (int**) malloc(sizeof(int*) * size);
+   for ( size_t ix = 0, jx = 0; ix < size; ++ix, jx+=size ){
+       iter[ix] = iterations + jx;
+       roots[ix] = roots_mat+jx;
+   }
+   int * rows_done =malloc(sizeof(int*)*size);
    int ret;
    pthread_t threads[thread_count+1]; // create one extra for writing to file
-   pthread_mutex_t mutex_data;
+   pthread_mutex_t mutex_data; 
+   pthread_mutex_init(&mutex_data, NULL); // mutex for accessing the data arrays
+
+   //probably not necessary
+   
    //pthread_mutex_t mutex_iter;
    //   pthread_mutex_t mutex_write;
-   pthread_mutex_init(&mutex_data, NULL); // mutex for accessing the root array
    //pthread_mutex_init(&mutex_iter,NULL); //  mutex for accessing the iteration array
    //pthread_mutex_init(&mutex_write, NULL); // mutex for accessing the rows_done array
  
 
 // precalculate the roots to the chosen polynomial
    
-   fmpz_poly_t f;
-   fmpz_poly_factor_t fac;
-   acb_ptr roots_exact;
-   slong i, deg, prec;
-
-   prec=2; // what should the precision be??
-   fmpz_poly_init(f);
-   
-   fmpz_poly_set_coeff_ui (f , power , 1);
-   fmpz_poly_set_coeff_si (f , 0 , -1);
-   fmpz_poly_print (f); flint_printf (" \n ");
-   
-   fmpz_poly_factor_init(fac);
-   
-   flint_printf("computing squarefree factorization...\n");
-   fmpz_poly_factor_squarefree(fac, f);
-   
-
-   for (i = 0; i < fac->num; i++) {
-     deg = fmpz_poly_degree(fac->p + i);
-     flint_printf("%wd roots of multiplicity %wd\n", deg, fac->exp[i]);
-     roots_exact = _acb_vec_init(deg);
-     arb_fmpz_poly_complex_roots(roots_exact, fac->p + i, 0, prec);
-     _acb_vec_clear(roots_exact, deg);
+   float * all_roots_exact = malloc(2*power*sizeof(float));
+   float ** roots_exact = malloc(2*power*sizeof(float*));
+   for (size_t i=0, j=0;i<2;i++ ,j+=power){
+     roots_exact[i]= all_roots_exact + j;
    }
    
-    fmpz_poly_factor_clear(fac);
-    fmpz_poly_clear(f);
-  
-// roots_exact =....
-//    printf("roots %wd")
-
-
+   /* One class of polynom: x^d - 1 = 0; which means that one root is always Re(root) = 1; end the other are complex roots 2*pi*j/d where j=1,...,d-1  */
+   roots_exact[0][0] = 1.0f;
+   roots_exact[0][1] = 0.0f;
+   for(size_t i=1; i<power; i++ ){
+     float theta = i*2*M_PI/power;
+     roots_exact[i][0] = cos(theta);
+     roots_exact[i][1] = sin(theta);
+   } 
 // do writing thread
-
-    int ** arg = malloc((2*sizeof(int*)));
-    arg[0]=0; // num roots
-    arg[1]=&power; // exponent
-    arg[2]=&size; // length
-     if (ret = pthread_create(threads+thread_count, NULL, writeppm, (void*)arg)) {
+   struct write_arguments arg;
+    arg.power=&power; // exponent
+    arg.size=&size; // length
+    if (ret = pthread_create(threads+thread_count, NULL, writeppm, &arg)) {
     printf("Error creating thread: %\n", ret);
     exit(1);
   }
+    
 // do first thread with the extra rows that may exist if #rows is not divisible by #threads
  int numrows_first = numrows+numrest;
- double ** args = malloc((4*sizeof(double*)));
-  args[0] = (double*)roots;
-  args[1] = (double*)iterations;
-  args[2] = (double*)&power;
-  args[3] = (double*)&numrows_first;
-  //  arg[4] = roots_exact;
-  if (ret = pthread_create(threads, NULL, threaded_newton, (void*)args)) {
+ int index=1;
+ struct newton_arguments args;
+  args.roots = roots;
+  args.iterations = iter;
+  args.rowsize=&size;
+  args.power = &power;
+  args.num_rows = &numrows_first;
+  args.index=&index;
+  args.roots_exact = roots_exact;
+  if (ret = pthread_create(threads, NULL, threaded_newton, &args)) {
     printf("Error creating thread: %\n", ret);
     exit(1);
   }
 
-  
+
   
 // do the rest of the threads
-  for (size_t tx=1, ix=numrows_first; tx < thread_count; ++tx, ix+=numrows){ 
-  double ** arg = malloc(4*sizeof(double*));
-  arg[0] = (double*)roots+ix;
-  arg[1] = (double*)iterations+ix;
-  arg[2] = (double*)&power;
-  arg[3] = (double*)&numrows;
-  //  arg[4] = 
-  //  arg[4] = roots_exact;
-    if (ret = pthread_create(threads+tx, NULL, threaded_newton, (void*)arg)) {
+  for (int tx=1, ix=numrows_first; tx < thread_count; ++tx, ix+=numrows){ 
+struct newton_arguments args2;
+  args2.roots = roots+ix;
+  args2.iterations = iter+ix;
+  args2.power = &power;
+  args2.rowsize=&size;
+  args2.index=&ix;
+  args2.num_rows= &numrows;
+  args2.roots_exact = roots_exact;
+    if (ret = pthread_create(threads+tx, NULL, threaded_newton, &arg)) {
       printf("Error creating thread: %\n", ret);
       exit(1);
     }
   }
-  //   uncommment when threads terminate
+
   // joining threads
   for (size_t tx=0; tx < thread_count; ++tx) {
     if (ret = pthread_join(threads[tx], NULL)) {
