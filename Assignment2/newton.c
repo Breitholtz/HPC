@@ -136,24 +136,33 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 	//Size represents number of rows each thread will calculate, size = *n_loc! 
 	//not correctly implemented, (just for structure)
 	//for (size_t ix = 0; ix < Size; ix++){
-		float e;
-		float x_k; //initial value 
-		float x_k1; //next iteration point (will become the root)
-		//*iterations_loc=0; //keep track of iteratians, supposed to be assignd to iterations_loc
+		float z_re; 
+		float z_im;
+		*iterations_loc=0; //keep track of iteratians, supposed to be assignd to iterations_loc
 		//Newtons method
-		while((e < 10^(-3)) || (abs(x_k) > 10^(10))){//fix second condition 
-			x_k1 = x_k - (x_k^(*d_loc )- 1)/(*d_loc*(x_k^(*d_loc-1)));
-			x_k = x_k1;  
-			e = abs(x_k1 - *root_exact_loc); //distance between exact and approximated root  
-			*iterat_loc++;
+		while((z_re < 1E10) || (z_im < 1E10)){ //add contition for distance e
+			float arg_z = atan2(z_im, z_re);
+			float abs_z = z_re*z_re + z_im*z_im;
+			float abs_d = 1;
+			
+			for(int i=1; i < *d_loc-1; i+=2)
+				abs_d *= abs_z;
+			if(*d_loc %2 == 0)
+				abs_d *= sqrt(abs_z);
+			
+			z_re = (z_re*(*d_loc - 1) + abs_d*cos(arg_z*(1-*d_loc)))/ *d_loc;
+			z_im = (z_im*(*d_loc -1) +abs_d*sin(arg_z*(1-*d_loc)))/ *d_loc;
+			
+			//e = (z_re-root_exact_re)*(z_re-root_exact_re) + (z_im-root_exact_im)*(z_im-root_exact_im); //distance between approx root and exact
+			*iterations_loc++;
 			return 0;
-		} // add condition for when xk1 diverges?
+		}
 		
-		*root_loc=x_k1;
+		/* *root_loc=x_k1; */ //fix for im and re values?
 		
 	pthread_mutex_lock(&mutex_data);
-	root += &root_loc; 
-	iterations += &iterations_loc;
+	//root += &root_loc;
+	iterations += &iterations_loc; 
 	pthread_mutex_unlock(&mutex_data);
 		return NULL;
    // }
