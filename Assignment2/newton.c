@@ -99,7 +99,6 @@ struct arguments parse_args(char * args[]){
 }
 
 void * threaded_newton(void * args){  // void * since we want it to work with threads
-  //free(args);
   // Just change memory in the function and return nothing. pass array of the roots of the function so we don't compute roots for every thread?
 
 
@@ -125,9 +124,6 @@ void * writeppm(void * args) { // void * since we want it to work with threads
   struct write_arguments *arguments =args;
   int * power= arguments->power;
   int * size = arguments->size;
-  //free(args);
-
-    // numroots++ // one more for the case that we don't converge to a root
   char str[26];
   sprintf(str, "newton_attractors_x%i.ppm", *power);
   FILE * fp  =fopen(str,"w");
