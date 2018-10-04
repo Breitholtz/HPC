@@ -99,20 +99,51 @@ struct arguments parse_args(char * args[]){
 }
 
 void * threaded_newton(void * args){  // void * since we want it to work with threads
-  //free(args);
-  // Just change memory in the function and return nothing. pass array of the roots of the function so we don't compute roots for every thread?
-
-
-  // plan: break up square (-2,2)^2 into size intervals for x and y using cos(2pi*(n/d)) and sin(2pi*(n/d)), where n=0,...,d-1 ; compute which roots the function has with some library function (outside);
-  // use newtons to approximate the root to 10^-3 precision (in absolute value)?; if divergent or very close to origin say that it converged to 0; note which root and how many iterations was necessary;
-  // 
-  // actual iterative formula
-  //
-  // x_(k+1)=x_k-f(x_k)/f'(x_k), where f=x^d-1, f'=d*x^(d-1)
-  //
+	// Just change memory in the function and return nothing. pass array of the roots of the function so we don't compute roots for every thread?
+	// plan: break up square (-2,2)^2 into size intervals for x and y using cos(2pi*(n/d)) and sin(2pi*(n/d)), where n=0,...,d-1 ; 
+	//compute which roots the function has with some library function (outside);
+	// use newtons to approximate the root to 10^-3 precision (in absolute value)?; 
+	//if divergent or very close to origin say that it converged to 0; note which root and how many iterations was necessary;
+	// actual iterative formula (newton, above)
+	// double sin(double x) is math lib function syntax
   
-  // double sin(double x) is math lib function syntax
-  return NULL;
+	//access args (see slides for access for args, threads). 
+	double * root_loc = ((double**)args)[0]; //root pointer  
+	double * iterations_loc = ((double**)args)[1]; // itteration pointer
+	double * d_loc = ((double**)args)[2]; //polynomial degree
+	double * n_loc = ((double**)args)[3]; //numrows_first
+	double * root_exact_loc = ((double**)args)[4];
+	//add pointer to keep track of calculated roots?
+	free(args);
+
+   
+	//Create input initial values as a matrix of size 1000x1000, for n in [0, d-1] split in 1000 intervals
+   
+   
+	//Size represents number of rows each thread will calculate, size = &n_loc? 
+	//not correctly implemented, (just for structure)
+	//for (size_t ix = 0; ix < Size; ix++){
+		double e;
+		double x_k; //initial value 
+		double x_k1; //next iteration point (will become the root)
+		*iterations_loc=0; //keep track of iteratians, supposed to be assignd to iterations_loc
+		//Newtons method
+		while((e < 10^(-3)) || (abs(x_k) > 10^(10))){//fix second condition 
+			x_k1 = x_k - (x_k^(*d_loc )- 1)/(*d_loc*(x_k^(*d_loc-1)));
+			x_k = x_k1;  
+			e = abs(x_k1 - *root_exact_loc); //distance between exact and approximated root  
+			*iterat_loc++;
+			return 0;
+		} // add condition for when xk1 diverges?
+		
+		*root_loc=x_k1;
+		
+	pthread_mutex_lock(&mutex_data);
+	root += &root_loc; 
+	iterations += &iterations_loc;
+	pthread_mutex_unlock(&mutex_data);
+		return NULL;
+   // }
 }
 
 void * writeppm(void * args) { // void * since we want it to work with threads
