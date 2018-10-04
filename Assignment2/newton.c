@@ -99,7 +99,6 @@ struct arguments parse_args(char * args[]){
 }
 
 void * threaded_newton(void * args){  // void * since we want it to work with threads
-<<<<<<< HEAD
   // Just change memory in the function and return nothing. pass array of the roots of the function so we don't compute roots for every thread?
 
 
@@ -110,7 +109,7 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
   //
   // x_(k+1)=x_k-f(x_k)/f'(x_k), where f=x^d-1, f'=d*x^(d-1)
   //
-=======
+
 	// Just change memory in the function and return nothing. pass array of the roots of the function so we don't compute roots for every thread?
 	// plan: break up square (-2,2)^2 into size intervals for x and y using cos(2pi*(n/d)) and sin(2pi*(n/d)), where n=0,...,d-1 ; 
 	//compute which roots the function has with some library function (outside);
@@ -118,7 +117,6 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 	//if divergent or very close to origin say that it converged to 0; note which root and how many iterations was necessary;
 	// actual iterative formula (newton, above)
 	// double sin(double x) is math lib function syntax
->>>>>>> 308195074f34088261516a2a41e62bf2d2dd57bf
   
 	//access args (see slides for access for args, threads). 
 	double * root_loc = ((double**)args)[0]; //root pointer  
@@ -127,7 +125,6 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 	double * n_loc = ((double**)args)[3]; //numrows_first
 	double * root_exact_loc = ((double**)args)[4];
 	//add pointer to keep track of calculated roots?
-	free(args);
 
    
 	//Create input initial values as a matrix of size 1000x1000, for n in [0, d-1] split in 1000 intervals
