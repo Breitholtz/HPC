@@ -24,10 +24,12 @@ struct newton_arguments{
   int * index;
   int * rowsize;
   int * num_rows;
+  int * rows_done;
 };
   struct write_arguments{
     int * power;
     int * size;
+    int * rows_done;
   };
 
 
@@ -113,13 +115,13 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
     struct newton_arguments *arg = args;
 	
 	float ** root_loc = arg->roots; //root pointer  
-	int * iterations_loc = arg->iterations; // itteration pointer
+	int ** iterations_loc = arg->iterations; // iteration pointer
 	int * d_loc = arg->power; //polynomial degree
 	int * n_loc = arg->num_rows; //numrows_first ; how many rows this thread is handling
 	float ** root_exact_loc = arg->roots_exact;
 	int * rowsize = arg->rowsize; // how long each row is
 	int * rownumber = arg->index // index of the first row in the memory block so we know where to put it after computation
-	//add pointer to keep track of calculated roots?
+	int * rows_done = arg->rows_done  // pointer to keep track of calculated roots
 
    
 	//Create input initial values as a matrix of size 1000x1000, for n in [0, d-1] split in 1000 intervals
@@ -130,7 +132,7 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 	//for (size_t ix = 0; ix < *n_loc; ix++){
 		float z_re; 
 		float z_im;
-		*iterations_loc=0; //keep track of iteratians, supposed to be assignd to iterations_loc
+		*iterations_loc=0; //keep track of iterations, supposed to be assignd to iterations_loc
 		//Newtons method
 		while((int sqrt(e) > 1E-3) || (abs(z_re) < 1E10) || (abs(z_im) < 1E10)){
 			float arg_z = atan2(z_im, z_re);
@@ -154,7 +156,8 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 		
 		pthread_mutex_lock(&mutex_data);
 		//root += &root_loc;
-		iterations += &iterations_loc; 
+		iterations += &iterations_loc;
+		// set some vector
 		pthread_mutex_unlock(&mutex_data);
 		return NULL;
    // }
@@ -165,8 +168,6 @@ void * writeppm(void * args) { // void * since we want it to work with threads
   // write the information into the desired .ppm format and output the file, call the one with colours corresponding to roots newton_attractor_xd.ppm and the other newton_convergence_xd.ppm
   // where d in _xd.pmm is the power of x
   
-  // pass in numroots which we know from computing the exact roots earlier
-
   struct write_arguments *arguments =args;
   int * power= arguments->power;
   int * size = arguments->size;
@@ -182,15 +183,22 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 
   
   //fwrite the info that is available from the newton function
-  // int sum_array=0;
-  // while(sum_array<2*size)
-  // sum_array=0;
-  //  pause to let threads finish rows?
-  // mutex_lock(&mutex_write);
-  // -check if any entries in array has been set to 1
-  // - if found entry: set entry to 2 and write that row to file
-  //  mutex_unlock(&mutex_write);
-  //  end while
+   int sum_array=0;
+   while(sum_array<2*size){
+    sum_array=0;
+    // pause to let threads finish rows?
+    mutex_lock(&mutex_write);
+    for(size_t index=0;index<size;index++){
+      sum_array+=rows_done[index];
+      if(rows_done[index]){
+	// - if found entry: set entry to 2 and write that row to file
+	rows_done[index]=2;
+	mutex_unlock(&mutex_write);
+	break;
+      }
+    }
+    // write to file here
+     }
  
   return NULL;
 }
@@ -221,26 +229,37 @@ int main(int argc, char * argv[] ){
    int numrows=size/thread_count;
 
 
-   float * roots_mat =malloc(sizeof(int*)*size*size);
-   float ** roots = (float**) malloc(sizeof(float*)*size);
-   int * iterations=malloc(sizeof(int*)*size*size);
+   float * roots_mat =(float *)malloc(2*sizeof(float*)*size*size);
+   float ** roots = (float**) malloc(2*sizeof(float*)*size);
+   int * iterations= (int *)malloc(sizeof(int*)*size*size);
    int ** iter = (int**) malloc(sizeof(int*) * size);
-   for ( size_t ix = 0, jx = 0; ix < size; ++ix, jx+=size ){
+  
+
+   
+   for ( size_t ix = 0, jx = 0; ix < size; ++ix, jx+=2*size ){ // setting pointers to every row in memory
        iter[ix] = iterations + jx;
        roots[ix] = roots_mat+jx;
    }
+   
+   for(size_t ix=0;ix<size;ix++){
+     for (size_t jx =0;jx<size;jx+=2){
+       roots[ix][jx]=-2+(2*ix)/(float)size; // calculating 
+       roots[ix][jx+1]=2-(2*jx)/(float)size;
+     }
+   }
    int * rows_done =malloc(sizeof(int*)*size);
+   for (size_t i=0;i<size;i++){
+     rows_done[i]=0;
+   }
+   
    int ret;
    pthread_t threads[thread_count+1]; // create one extra for writing to file
    pthread_mutex_t mutex_data; 
    pthread_mutex_init(&mutex_data, NULL); // mutex for accessing the data arrays
 
    //probably not necessary
-   
-   //pthread_mutex_t mutex_iter;
-   //   pthread_mutex_t mutex_write;
-   //pthread_mutex_init(&mutex_iter,NULL); //  mutex for accessing the iteration array
-   //pthread_mutex_init(&mutex_write, NULL); // mutex for accessing the rows_done array
+   pthread_mutex_t mutex_write;
+   pthread_mutex_init(&mutex_write, NULL); // mutex for accessing the rows_done array
  
 
 // precalculate the roots to the chosen polynomial
@@ -279,6 +298,7 @@ int main(int argc, char * argv[] ){
   args.num_rows = &numrows_first;
   args.index=&index;
   args.roots_exact = roots_exact;
+  args.rows_done=rows_done;
   if (ret = pthread_create(threads, NULL, threaded_newton, &args)) {
     printf("Error creating thread: %\n", ret);
     exit(1);
@@ -296,6 +316,7 @@ struct newton_arguments args2;
   args2.index=&ix;
   args2.num_rows= &numrows;
   args2.roots_exact = roots_exact;
+  args2.rows_done=rows_done;
     if (ret = pthread_create(threads+tx, NULL, threaded_newton, &arg)) {
       printf("Error creating thread: %\n", ret);
       exit(1);
@@ -303,7 +324,7 @@ struct newton_arguments args2;
   }
 
   // joining threads
-  for (size_t tx=0; tx < thread_count; ++tx) {
+  for (size_t tx=0; tx < thread_count+1; ++tx) {
     if (ret = pthread_join(threads[tx], NULL)) {
       printf("Error joining thread: %d\n", ret);
       exit(1);
