@@ -15,9 +15,8 @@ struct arguments{
 
 };
 
-
 struct newton_arguments{
-  float ** roots;
+  float ** initial;
   int  ** iterations;
   int * power;
   float ** roots_exact;
@@ -25,15 +24,20 @@ struct newton_arguments{
   int * rowsize;
   int * num_rows;
   int * rows_done;
+  int ** result;
 };
+
   struct write_arguments{
     int * power;
     int * size;
     int * rows_done;
+    int ** result;
+    int ** iterations;
   };
 
-
-
+pthread_mutex_t mutex_data;
+pthread_mutex_t mutex_write; 
+   
 //struct arguments is what we use to pass out multiple return values
 struct arguments parse_args(char * args[]){
   
@@ -103,27 +107,19 @@ struct arguments parse_args(char * args[]){
 
 void * threaded_newton(void * args){  // void * since we want it to work with threads
 
-	// Just change memory in the function and return nothing.
-	// plan: break up square (-2,2)^2 into size intervals for x and y using cos(2pi*(n/d)) and sin(2pi*(n/d)), where n=0,...,d-1 ; 
-	// use newtons to approximate the root to 10^-3 precision (in absolute value); 
-	//if divergent (absolute value larger than 1e10) or very close to origin(1e-3) say that it converged to 0; 
-	//note which root and how many iterations was necessary;
-	// actual iterative formula (newton)
-	// double sin(double x) is math lib function syntax
-  
 	//access args from struct
     struct newton_arguments *arg = args;
 	
-	float ** root_loc = arg->roots; //root pointer  
+	float ** root_loc = arg->initial; //initial value pointer  
 	int ** iterations_loc = arg->iterations; // iteration pointer
 	int * d_loc = arg->power; //polynomial degree
 	int * n_loc = arg->num_rows; //numrows_first ; how many rows this thread is handling
 	float ** root_exact_loc = arg->roots_exact;
 	int * rowsize = arg->rowsize; // how long each row is
-	int * rownumber = arg->index // index of the first row in the memory block so we know where to put it after computation
-	int * rows_done = arg->rows_done  // pointer to keep track of calculated roots
+	int * rownumber = arg->index; // index of the first row in the memory block so we know where to put it after computation
+	int * rows_done = arg->rows_done;  // pointer to keep track of calculated roots
 
-   
+	  /*
 	//Create input initial values as a matrix of size 1000x1000, for n in [0, d-1] split in 1000 intervals
    
    
@@ -152,13 +148,14 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 			return 0;
 		}
 		
-		/* *root_loc=x_k1; */ //fix for im and re values?
+		
 		
 		pthread_mutex_lock(&mutex_data);
 		//root += &root_loc;
 		iterations += &iterations_loc;
 		// set some vector
 		pthread_mutex_unlock(&mutex_data);
+		*/
 		return NULL;
    // }
 }
@@ -171,6 +168,9 @@ void * writeppm(void * args) { // void * since we want it to work with threads
   struct write_arguments *arguments =args;
   int * power= arguments->power;
   int * size = arguments->size;
+  int * rows_done=arguments->rows_done;
+  int ** iterations= arguments->iterations;
+  int ** result = arguments->result;
   char str[26];
   sprintf(str, "newton_attractors_x%i.ppm", *power);
   FILE * fp  =fopen(str,"w");
@@ -181,27 +181,31 @@ void * writeppm(void * args) { // void * since we want it to work with threads
   fprintf(fp2,"P3\n%d %d\n%d\n",size,size, *power); 
   fclose(fp2);
 
-  
   //fwrite the info that is available from the newton function
    int sum_array=0;
-   while(sum_array<2*size){
+   const int SIZE =*size;
+   int rows_written[SIZE];
+   while(sum_array<SIZE){
     sum_array=0;
     // pause to let threads finish rows?
-    mutex_lock(&mutex_write);
-    for(size_t index=0;index<size;index++){
-      sum_array+=rows_done[index];
-      if(rows_done[index]){
-	// - if found entry: set entry to 2 and write that row to file
-	rows_done[index]=2;
-	mutex_unlock(&mutex_write);
+    pthread_mutex_lock(&mutex_write);
+    for(size_t index=0;index<SIZE;index++){
+      sum_array+=rows_written[index];
+      if(rows_done[index]|| !rows_written[index]){
+	// - if found entry:  note that it is done write that row to file
+	rows_written[index]=1;
 	break;
       }
     }
+     pthread_mutex_unlock(&mutex_write);
     // write to file here
+     // fwrite...
+     if(sum_array==SIZE)
+       break;
      }
- 
   return NULL;
 }
+
 
 int main(int argc, char * argv[] ){
   // Grupp: hpcgp017
@@ -229,22 +233,26 @@ int main(int argc, char * argv[] ){
    int numrows=size/thread_count;
 
 
-   float * roots_mat =(float *)malloc(2*sizeof(float*)*size*size);
-   float ** roots = (float**) malloc(2*sizeof(float*)*size);
+   float * initial_mat =(float *)malloc(2*sizeof(float*)*size*size);
+   float ** initial = (float**) malloc(2*sizeof(float*)*size); // initial values to newton
    int * iterations= (int *)malloc(sizeof(int*)*size*size);
    int ** iter = (int**) malloc(sizeof(int*) * size);
+   int * result_mat= (int *)malloc(sizeof(int*)*size*size);
+   int ** result = (int**) malloc(sizeof(int*) * size);
+   
   
 
    
    for ( size_t ix = 0, jx = 0; ix < size; ++ix, jx+=2*size ){ // setting pointers to every row in memory
+       result[ix]= result_mat + jx;
        iter[ix] = iterations + jx;
-       roots[ix] = roots_mat+jx;
+       initial[ix] = initial_mat+jx;
    }
    
-   for(size_t ix=0;ix<size;ix++){
-     for (size_t jx =0;jx<size;jx+=2){
-       roots[ix][jx]=-2+(2*ix)/(float)size; // calculating 
-       roots[ix][jx+1]=2-(2*jx)/(float)size;
+   for(size_t ix=0;ix<size;ix++){// row
+     for (size_t jx =0;jx<size;jx+=2){//column
+       initial[ix][jx]=-2+(2*jx)/(float)size; // initial x
+       initial[ix][jx+1]=2-(2*ix)/(float)size; // initial y
      }
    }
    int * rows_done =malloc(sizeof(int*)*size);
@@ -254,11 +262,9 @@ int main(int argc, char * argv[] ){
    
    int ret;
    pthread_t threads[thread_count+1]; // create one extra for writing to file
-   pthread_mutex_t mutex_data; 
    pthread_mutex_init(&mutex_data, NULL); // mutex for accessing the data arrays
 
    //probably not necessary
-   pthread_mutex_t mutex_write;
    pthread_mutex_init(&mutex_write, NULL); // mutex for accessing the rows_done array
  
 
@@ -270,18 +276,20 @@ int main(int argc, char * argv[] ){
      roots_exact[i]= all_roots_exact + j;
    }
    
-   /* One class of polynom: x^d - 1 = 0; which means that one root is always Re(root) = 1; end the other are complex roots 2*pi*j/d where j=1,...,d-1  */
+   /* One class of polynom: x^d - 1 = 0; which means that one root is always 1; and the other are complex roots 2*pi*j/d where j=1,...,d-1  */
    roots_exact[0][0] = 1.0f;
    roots_exact[0][1] = 0.0f;
    for(size_t i=1; i<power; i++ ){
      float theta = i*2*M_PI/power;
      roots_exact[i][0] = cos(theta);
      roots_exact[i][1] = sin(theta);
-   } 
+   }
+   
 // do writing thread
    struct write_arguments arg;
     arg.power=&power; // exponent
     arg.size=&size; // length
+    arg.rows_done=rows_done;
     if (ret = pthread_create(threads+thread_count, NULL, writeppm, &arg)) {
     printf("Error creating thread: %\n", ret);
     exit(1);
@@ -291,7 +299,8 @@ int main(int argc, char * argv[] ){
  int numrows_first = numrows+numrest;
  int index=1;
  struct newton_arguments args;
-  args.roots = roots;
+  args.initial = initial;
+  args.result = result;
   args.iterations = iter;
   args.rowsize=&size;
   args.power = &power;
@@ -309,8 +318,9 @@ int main(int argc, char * argv[] ){
 // do the rest of the threads
   for (int tx=1, ix=numrows_first; tx < thread_count; ++tx, ix+=numrows){ 
 struct newton_arguments args2;
-  args2.roots = roots+ix;
+  args2.initial = initial+ix;
   args2.iterations = iter+ix;
+  args.result = result+ix;
   args2.power = &power;
   args2.rowsize=&size;
   args2.index=&ix;
@@ -332,10 +342,8 @@ struct newton_arguments args2;
   }
 
   pthread_mutex_destroy(&mutex_data);
-  //pthread_mutex_destroy(&mutex_iter);
-  //  pthread_mutex_destroy(&mutex_write)
+  pthread_mutex_destroy(&mutex_write);
   
   return 0;
   
 }
-  
