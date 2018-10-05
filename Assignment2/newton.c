@@ -119,20 +119,25 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 	int * rownumber = arg->index; // index of the first row in the memory block so we know where to put it after computation
 	int * rows_done = arg->rows_done;  // pointer to keep track of calculated roots
 
+<<<<<<< HEAD
 	  /*
 	//Create input initial values as a matrix of size 1000x1000, for n in [0, d-1] split in 1000 intervals
+=======
+>>>>>>> bc8ed5c4fe4de065b57dd1ce8766da6c732f5b94
    
    
+	for(/* loop over rowsize of initaial values */){
 	//Size represents number of rows each thread will calculate, size = *n_loc! 
-	//not correctly implemented, 
-	//for (size_t ix = 0; ix < *n_loc; ix++){
-		float z_re; 
-		float z_im;
-		*iterations_loc=0; //keep track of iterations, supposed to be assignd to iterations_loc
+		float *z_re; 
+		float *z_im;
+		int True = 0;
+		*iterations_loc=0; //keep track of iteratians, supposed to be assignd to iterations_loc
+		
 		//Newtons method
-		while((int sqrt(e) > 1E-3) || (abs(z_re) < 1E10) || (abs(z_im) < 1E10)){
-			float arg_z = atan2(z_im, z_re);
-			float abs_z = z_re*z_re + z_im*z_im;
+		
+		while((!True) || ( abs(z_re) < MAX) || (abs(z_im) < MAX)){
+			float arg_z = atan2(*z_im, *z_re);
+			float abs_z = *z_re* *z_re + *z_im* *z_im;
 			float abs_d = 1;
 			
 			for(int i=1; i < *d_loc-1; i+=2)
@@ -140,24 +145,33 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 			if(*d_loc %2 == 0)
 				abs_d *= sqrt(abs_z);
 			
-			z_re = (z_re*(*d_loc - 1) + abs_d*cos(arg_z*(1-*d_loc)))/ *d_loc;
-			z_im = (z_im*(*d_loc -1) +abs_d*sin(arg_z*(1-*d_loc)))/ *d_loc;
+			*z_re = (*z_re*(*d_loc - 1) + abs_d*cos(arg_z*(1-*d_loc)))/ *d_loc;
+			*z_im = (*z_im*(*d_loc -1) +abs_d*sin(arg_z*(1-*d_loc)))/ *d_loc;
 			
-			float e = (z_re-root_exact_re[0])*(z_re-root_exact_re[0]) + (z_im-root_exact_im[1])*(z_im-root_exact_im[1]); //distance between approx root and exact, vet inite helt riktigt hur jag ska göra här.
+			//distance check from exact root;
+			for(int ix=0 ; ix < *d_loc -1; ix++){
+				if((*z_re-**root_exact[ix][0])*(*z_re-**root_exact[ix][0]) + (*z_im-**root_exact[ix][1])*(*z_im-**root_exact[ix][1]) < DIST*DIST);
+					True = 1;
+			}
 			*iterations_loc++;
 			return 0;
 		}
+<<<<<<< HEAD
 		
 		
+=======
+
+>>>>>>> bc8ed5c4fe4de065b57dd1ce8766da6c732f5b94
 		
 		pthread_mutex_lock(&mutex_data);
-		//root += &root_loc;
-		iterations += &iterations_loc;
-		// set some vector
+		//root[*rownumber][2*ix] = *z_re;
+		//root[*rownumber][2*ix+1] = *z_im;
+		iterations[*rownumber][ix] = *iterations_loc;
+		//rows_done[ix] = 1;
 		pthread_mutex_unlock(&mutex_data);
 		*/
 		return NULL;
-   // }
+	}
 }
 
 void * writeppm(void * args) { // void * since we want it to work with threads
