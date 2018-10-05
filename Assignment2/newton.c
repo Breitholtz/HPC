@@ -116,20 +116,15 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 	int * n_loc = arg->num_rows; //numrows_first ; how many rows this thread is handling
 	float ** root_exact_loc = arg->roots_exact;
 	int * rowsize = arg->rowsize; // how long each row is
-	int * rownumber = arg->index; // index of the first row in the memory block so we know where to put it after computation
+	int rownumber = *arg->index; // index of the first row in the memory block so we know where to put it after computation
 	int * rows_done = arg->rows_done;  // pointer to keep track of calculated roots
 
-<<<<<<< HEAD
-	  /*
-	//Create input initial values as a matrix of size 1000x1000, for n in [0, d-1] split in 1000 intervals
-=======
->>>>>>> bc8ed5c4fe4de065b57dd1ce8766da6c732f5b94
-   
-   
-	for(/* loop over rowsize of initaial values */){
-	//Size represents number of rows each thread will calculate, size = *n_loc! 
-		float *z_re; 
-		float *z_im;
+	printf("bajs %d", rownumber);
+	
+    /* for(int i = *rownumber; i < n_loc-1; i++){
+	for(int jx = 0; jx < rowsize-1; jx++){ 
+		float *z_re = ; 
+		float *z_im = ;
 		int True = 0;
 		*iterations_loc=0; //keep track of iteratians, supposed to be assignd to iterations_loc
 		
@@ -150,35 +145,34 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 			
 			//distance check from exact root;
 			for(int ix=0 ; ix < *d_loc -1; ix++){
-				if((*z_re-**root_exact[ix][0])*(*z_re-**root_exact[ix][0]) + (*z_im-**root_exact[ix][1])*(*z_im-**root_exact[ix][1]) < DIST*DIST);
+				if((*z_re-**root_exact[ix][0])*(*z_re-**root_exact[ix][0]) + (*z_im-**root_exact[ix][1])*(*z_im-**root_exact[ix][1]) < DIST*DIST){
 					True = 1;
+					break;
+				}
 			}
 			*iterations_loc++;
 			return 0;
 		}
-<<<<<<< HEAD
-		
-		
-=======
 
->>>>>>> bc8ed5c4fe4de065b57dd1ce8766da6c732f5b94
 		
 		pthread_mutex_lock(&mutex_data);
-		//root[*rownumber][2*ix] = *z_re;
-		//root[*rownumber][2*ix+1] = *z_im;
+		root[*rownumber][2*jx] = *z_re;
+		root[*rownumber][2*jx+1] = *z_im;
 		iterations[*rownumber][ix] = *iterations_loc;
-		//rows_done[ix] = 1;
 		pthread_mutex_unlock(&mutex_data);
-		*/
-		return NULL;
 	}
+		pthread_mutex_lock(&mutex_write);
+		rows_done[*rownumber] = 1;
+		pthread_mutex_unlock(&mutex_write);
+	} */
+	return NULL;
 }
 
 void * writeppm(void * args) { // void * since we want it to work with threads
 
   // write the information into the desired .ppm format and output the file, call the one with colours corresponding to roots newton_attractor_xd.ppm and the other newton_convergence_xd.ppm
   // where d in _xd.pmm is the power of x
-  
+	/*
   struct write_arguments *arguments =args;
   int * power= arguments->power;
   int * size = arguments->size;
@@ -216,7 +210,7 @@ void * writeppm(void * args) { // void * since we want it to work with threads
      // fwrite...
      if(sum_array==SIZE)
        break;
-     }
+     } */
   return NULL;
 }
 
