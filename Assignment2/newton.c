@@ -131,13 +131,13 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
      for(int i = rownumber; i < n_loc-1; i++){
 	for(int jx = 0; jx < rowsize-1; jx++){ 
 		int True = 0;
-		int iterations_loc=0; //keep track of iteratians, supposed to be assignd to iterations_loc
+		int iterations_loc=0; //keep track of iterations
 		int which_root=0;
 
 		z_re=initial[i][2*jx];
 		z_im=initial[i][2*jx+1];
 		//Newtons method
-		//printf("getting here\n");
+		
 		while((True==0) && ( abs(z_re) < MAX) && (abs(z_im) < MAX)){
 			arg_z = atan2(z_im, z_re);
 			abs_z = z_re* z_re + z_im* z_im;
@@ -151,21 +151,20 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 			z_re = (z_re*(d_loc - 1) + 1/abs_d*cos(arg_z*(1-d_loc)))/ d_loc;
 			z_im = (z_im*(d_loc -1) +1/abs_d*sin(arg_z*(1-d_loc)))/ d_loc;
 						
-		        //printf("new z_re %f; new z_im %f",z_re,z_im);
+		       
 						
 			//distance check from exact roots;
 			for(int ix=0 ; ix < d_loc; ix++){
 				if((z_re-root_exact[ix][0])*(z_re-root_exact[ix][0]) + (z_im-root_exact[ix][1])*(z_im-root_exact[ix][1]) < DIST*DIST){
 					True = 1;
 					which_root=ix;
-					//printf("getting here\n");
 					break;
 				}
 			}
 			iterations_loc++;
 		}
 		if(True){
-		  //printf("found a root!!!!!!!!!!!!!!!!!!!!!\n");
+		  // printf("------------------Found a root!!-------------------\n");
 		}else{
 		  printf("--------------------Diverged-------------------\n");
 		}
@@ -176,9 +175,9 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 		pthread_mutex_unlock(&mutex_data);
 	}
 		pthread_mutex_lock(&mutex_write);
-		rows_done[rownumber] = 1;
+		rows_done[i] = 1;
 		pthread_mutex_unlock(&mutex_write);
-	}
+     }
 	return NULL;
 }
 
@@ -186,7 +185,7 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 
   // write the information into the desired .ppm format and output the file, call the one with colours corresponding to roots newton_attractor_xd.ppm and the other newton_convergence_xd.ppm
   // where d in _xd.pmm is the power of x
-	/*
+	
   struct write_arguments *arguments =args;
   int * power= arguments->power;
   int * size = arguments->size;
@@ -194,19 +193,23 @@ void * writeppm(void * args) { // void * since we want it to work with threads
   int ** iterations= arguments->iterations;
   int ** result = arguments->result;
   char str[26];
+  char str2[26];
   sprintf(str, "newton_attractors_x%i.ppm", *power);
   FILE * fp  =fopen(str,"w");
   fprintf(fp,"P3\n%d %d\n%d\n",size,size,*power);
   fclose(fp);
-  sprintf(str, "newton_convergence_x%i.ppm", *power);  
+  sprintf(str2, "newton_convergence_x%i.ppm", *power);  
   FILE * fp2  =fopen(str,"w");
   fprintf(fp2,"P3\n%d %d\n%d\n",size,size, *power); 
   fclose(fp2);
-
+  
   //fwrite the info that is available from the newton function
    int sum_array=0;
    const int SIZE =*size;
    int rows_written[SIZE];
+   int iterations_loc[SIZE][SIZE];
+   int result_loc[SIZE][SIZE];
+   /*
    while(sum_array<SIZE){
     sum_array=0;
     // pause to let threads finish rows?
@@ -214,17 +217,36 @@ void * writeppm(void * args) { // void * since we want it to work with threads
     for(size_t index=0;index<SIZE;index++){
       sum_array+=rows_written[index];
       if(rows_done[index]|| !rows_written[index]){
-	// - if found entry:  note that it is done write that row to file
+	// if found entry:  note that it is done write that row to file
 	rows_written[index]=1;
 	break;
       }
     }
      pthread_mutex_unlock(&mutex_write);
-    // write to file here
-     // fwrite...
+    // write to data here??
+     
+     
+     // 2D array for colors (or shades of gray) 
+     unsigned char data[SIZE][SIZE];
+               
+     // fill the data array 
+     for (size_t y = 0; y < SIZE; ++y) {
+       for (size_t x = 0; x < SIZE; ++x){
+	 data[y][x] = (x + y) & 255;
+       }
+     }
+     
      if(sum_array==SIZE)
        break;
-     } */
+     }
+   // fwrite whole thing??
+   //rite the whole data array to ppm file in one step
+     fp = fopen(str, "wb");
+     //write image data bytes to the file 
+     fwrite(data, SIZE*SIZE, 1, fp);
+     fclose(fp);
+     printf("OK - file %s saved\n", filename);
+     */
   return NULL;
 }
 
@@ -388,7 +410,7 @@ int main(int argc, char * argv[] ){
   free(roots_exact);
   free(all_roots_exact);
   free(rows_done);
-
+  free(index);
   
   return 0;  
 }
