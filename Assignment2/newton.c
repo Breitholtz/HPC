@@ -7,6 +7,7 @@
 #include "acb.h"
 #include "arb_fmpz_poly.h"
 #include "flint/arith.h" // necessary?
+
 struct arguments{
   int threads;
   int length;
@@ -99,26 +100,17 @@ struct arguments parse_args(char * args[]){
 }
 
 void * threaded_newton(void * args){  // void * since we want it to work with threads
-  // Just change memory in the function and return nothing. pass array of the roots of the function so we don't compute roots for every thread?
-
-
-  // plan: break up square (-2,2)^2 into size intervals for x and y using cos(2pi*(n/d)) and sin(2pi*(n/d)), where n=0,...,d-1 ; compute which roots the function has with some library function (outside);
-  // use newtons to approximate the root to 10^-3 precision (in absolute value)?; if divergent or very close to origin say that it converged to 0; note which root and how many iterations was necessary;
-  // 
-  // actual iterative formula
-  //
-  // x_(k+1)=x_k-f(x_k)/f'(x_k), where f=x^d-1, f'=d*x^(d-1)
-  //
 
 	// Just change memory in the function and return nothing.
 	// plan: break up square (-2,2)^2 into size intervals for x and y using cos(2pi*(n/d)) and sin(2pi*(n/d)), where n=0,...,d-1 ; 
 	// use newtons to approximate the root to 10^-3 precision (in absolute value); 
-	//if divergent (absolute value larger than 1e10) or very close to origin(1e-3) say that it converged to 0; note which root and how many iterations was necessary;
-	// actual iterative formula (newton, above)
+	//if divergent (absolute value larger than 1e10) or very close to origin(1e-3) say that it converged to 0; 
+	//note which root and how many iterations was necessary;
+	// actual iterative formula (newton)
 	// double sin(double x) is math lib function syntax
   
 	//access args from struct
-        struct newton_arguments *arg = args;
+    struct newton_arguments *arg = args;
 	
 	float ** root_loc = arg->roots; //root pointer  
 	int * iterations_loc = arg->iterations; // itteration pointer
@@ -134,13 +126,13 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
    
    
 	//Size represents number of rows each thread will calculate, size = *n_loc! 
-	//not correctly implemented, (just for structure)
-	//for (size_t ix = 0; ix < Size; ix++){
+	//not correctly implemented, 
+	//for (size_t ix = 0; ix < *n_loc; ix++){
 		float z_re; 
 		float z_im;
 		*iterations_loc=0; //keep track of iteratians, supposed to be assignd to iterations_loc
 		//Newtons method
-		while((z_re < 1E10) || (z_im < 1E10)){ //add contition for distance e
+		while((int sqrt(e) > 1E-3) || (abs(z_re) < 1E10) || (abs(z_im) < 1E10)){
 			float arg_z = atan2(z_im, z_re);
 			float abs_z = z_re*z_re + z_im*z_im;
 			float abs_d = 1;
@@ -153,17 +145,17 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 			z_re = (z_re*(*d_loc - 1) + abs_d*cos(arg_z*(1-*d_loc)))/ *d_loc;
 			z_im = (z_im*(*d_loc -1) +abs_d*sin(arg_z*(1-*d_loc)))/ *d_loc;
 			
-			//e = (z_re-root_exact_re)*(z_re-root_exact_re) + (z_im-root_exact_im)*(z_im-root_exact_im); //distance between approx root and exact
+			float e = (z_re-root_exact_re[0])*(z_re-root_exact_re[0]) + (z_im-root_exact_im[1])*(z_im-root_exact_im[1]); //distance between approx root and exact, vet inite helt riktigt hur jag ska göra här.
 			*iterations_loc++;
 			return 0;
 		}
 		
 		/* *root_loc=x_k1; */ //fix for im and re values?
 		
-	pthread_mutex_lock(&mutex_data);
-	//root += &root_loc;
-	iterations += &iterations_loc; 
-	pthread_mutex_unlock(&mutex_data);
+		pthread_mutex_lock(&mutex_data);
+		//root += &root_loc;
+		iterations += &iterations_loc; 
+		pthread_mutex_unlock(&mutex_data);
 		return NULL;
    // }
 }
