@@ -2,12 +2,14 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
-#include "acb_poly.h"  //   http://arblib.org/acb_poly.html#acb-poly     - necessary?
+//#include "acb_poly.h"  //   http://arblib.org/acb_poly.html#acb-poly     - necessary?
 #include <math.h>      
-#include "acb.h"
-#include "arb_fmpz_poly.h"
-#include "flint/arith.h" // necessary?
+//#include "acb.h"
+//#include "arb_fmpz_poly.h"
+//#include "flint/arith.h" // necessary?
 
+#define DIST 0.001
+#define MAX 10000000000
 struct arguments{
   int threads;
   int length;
@@ -106,65 +108,77 @@ struct arguments parse_args(char * args[]){
 }
 
 void * threaded_newton(void * args){  // void * since we want it to work with threads
-
+  
 	//access args from struct
     struct newton_arguments *arg = args;
 	
-	float ** root_loc = arg->initial; //initial value pointer  
-	int ** iterations_loc = arg->iterations; // iteration pointer
-	int * d_loc = arg->power; //polynomial degree
-	int * n_loc = arg->num_rows; //numrows_first ; how many rows this thread is handling
-	float ** root_exact_loc = arg->roots_exact;
-	int * rowsize = arg->rowsize; // how long each row is
+	float ** initial = arg->initial; //initial value pointer  
+	int ** iterations = arg->iterations; // iteration pointer
+	int d_loc = *arg->power; //polynomial degree
+	int  n_loc = *arg->num_rows; //numrows_first ; how many rows this thread is handling
+	float ** root_exact = arg->roots_exact;
+	int  rowsize = *arg->rowsize; // how long each row is
 	int rownumber = *arg->index; // index of the first row in the memory block so we know where to put it after computation
 	int * rows_done = arg->rows_done;  // pointer to keep track of calculated roots
-
-	printf("bajs %d", rownumber);
+	int ** result = arg->result;
 	
-    /* for(int i = *rownumber; i < n_loc-1; i++){
+	float z_re;
+	float z_im;
+	float arg_z;
+	float abs_z;
+	float abs_d;
+	printf("number of rows %d; initial x1 %f; initial y1 %f; rownumber %d; root real %f; root imag %f;root2 real %f; root2 imag %f\n",n_loc,initial[0][2],initial[0][3],rownumber,root_exact[0][0],root_exact[0][1],root_exact[1][0],root_exact[1][1]);
+     for(int i = rownumber; i < n_loc-1; i++){
 	for(int jx = 0; jx < rowsize-1; jx++){ 
-		float *z_re = ; 
-		float *z_im = ;
 		int True = 0;
-		*iterations_loc=0; //keep track of iteratians, supposed to be assignd to iterations_loc
-		
+		int iterations_loc=0; //keep track of iteratians, supposed to be assignd to iterations_loc
+		int which_root=0;
+
+		z_re=initial[i][2*jx];
+		z_im=initial[i][2*jx+1];
 		//Newtons method
 		
-		while((!True) || ( abs(z_re) < MAX) || (abs(z_im) < MAX)){
-			float arg_z = atan2(*z_im, *z_re);
-			float abs_z = *z_re* *z_re + *z_im* *z_im;
-			float abs_d = 1;
-			
-			for(int i=1; i < *d_loc-1; i+=2)
+		while((True==0) && ( abs(z_re) < MAX) && (abs(z_im) < MAX)){
+			arg_z = atan2(z_im, z_re);
+			abs_z = z_re* z_re + z_im* z_im;
+			abs_d=1;
+			//printf("kjansdkjnasdkjnawd");
+			for(int i=1; i < d_loc-1; i+=2)
 				abs_d *= abs_z;
-			if(*d_loc %2 == 0)
+			if(d_loc %2 == 0)
 				abs_d *= sqrt(abs_z);
-			
-			*z_re = (*z_re*(*d_loc - 1) + abs_d*cos(arg_z*(1-*d_loc)))/ *d_loc;
-			*z_im = (*z_im*(*d_loc -1) +abs_d*sin(arg_z*(1-*d_loc)))/ *d_loc;
-			
-			//distance check from exact root;
-			for(int ix=0 ; ix < *d_loc -1; ix++){
-				if((*z_re-**root_exact[ix][0])*(*z_re-**root_exact[ix][0]) + (*z_im-**root_exact[ix][1])*(*z_im-**root_exact[ix][1]) < DIST*DIST){
+
+			z_re = (z_re*(d_loc - 1) + 1/abs_d*cos(arg_z*(1-d_loc)))/ d_loc;
+			z_im = (z_im*(d_loc -1) +1/abs_d*sin(arg_z*(1-d_loc)))/ d_loc;
+						
+		        //printf("new z_re %f; new z_im %f",z_re,z_im);
+						
+			//distance check from exact roots;
+			for(int ix=0 ; ix < d_loc; ix++){
+				if((z_re-root_exact[ix][0])*(z_re-root_exact[ix][0]) + (z_im-root_exact[ix][1])*(z_im-root_exact[ix][1]) < DIST*DIST){
 					True = 1;
+					which_root=ix;
+					//printf("getting here\n");
 					break;
 				}
 			}
-			*iterations_loc++;
-			return 0;
+			iterations_loc++;
 		}
-
+		if(True){
+		  //printf("found a root!!!!!!!!!!!!!!!!!!!!!\n");
+		}else{
+		  printf("--------------------Diverged-------------------\n");
+		}
 		
 		pthread_mutex_lock(&mutex_data);
-		root[*rownumber][2*jx] = *z_re;
-		root[*rownumber][2*jx+1] = *z_im;
-		iterations[*rownumber][ix] = *iterations_loc;
+	        result[i][jx]=which_root;
+		iterations[i][jx] = iterations_loc;
 		pthread_mutex_unlock(&mutex_data);
 	}
 		pthread_mutex_lock(&mutex_write);
-		rows_done[*rownumber] = 1;
+		rows_done[rownumber] = 1;
 		pthread_mutex_unlock(&mutex_write);
-	} */
+	}
 	return NULL;
 }
 
@@ -243,18 +257,19 @@ int main(int argc, char * argv[] ){
 
    float * initial_mat =(float *)malloc(2*sizeof(float*)*size*size);
    float ** initial = (float**) malloc(2*sizeof(float*)*size); // initial values to newton
-   int * iterations= (int *)malloc(sizeof(int*)*size*size);
-   int ** iter = (int**) malloc(sizeof(int*) * size);
+   int * iterations_mat= (int *)malloc(sizeof(int*)*size*size);
+   int ** iterations = (int**) malloc(sizeof(int*) * size);
    int * result_mat= (int *)malloc(sizeof(int*)*size*size);
    int ** result = (int**) malloc(sizeof(int*) * size);
    
   
 
    
-   for ( size_t ix = 0, jx = 0; ix < size; ++ix, jx+=2*size ){ // setting pointers to every row in memory
+   for ( size_t ix = 0, jx = 0; ix < size; ++ix, jx+=size ){ // setting pointers to every row in memory
        result[ix]= result_mat + jx;
-       iter[ix] = iterations + jx;
+       iterations[ix] = iterations_mat + jx;
        initial[ix] = initial_mat+jx;
+       initial[2*ix]=initial_mat+2*jx;
    }
    
    for(size_t ix=0;ix<size;ix++){// row
@@ -309,7 +324,7 @@ int main(int argc, char * argv[] ){
  struct newton_arguments args;
   args.initial = initial;
   args.result = result;
-  args.iterations = iter;
+  args.iterations = iterations;
   args.rowsize=&size;
   args.power = &power;
   args.num_rows = &numrows_first;
@@ -327,7 +342,7 @@ int main(int argc, char * argv[] ){
   for (int tx=1, ix=numrows_first; tx < thread_count; ++tx, ix+=numrows){ 
 struct newton_arguments args2;
   args2.initial = initial+ix;
-  args2.iterations = iter+ix;
+  args2.iterations = iterations+ix;
   args.result = result+ix;
   args2.power = &power;
   args2.rowsize=&size;
@@ -348,10 +363,25 @@ struct newton_arguments args2;
       exit(1);
     }
   }
-
+  
+  //  for(size_t i=0;i<size;i++){
+    for(size_t j=0;j<size;j++){
+      printf("iterations %d: %d\n",i,iterations_mat[j]);//[j]);
+    printf("Which root %d\n",result_mat[j]);//[j]);
+    //}
+  }
   pthread_mutex_destroy(&mutex_data);
   pthread_mutex_destroy(&mutex_write);
+  free(result);
+  free(result_mat);
+  free(iterations);
+  free(iterations_mat);
+  free(initial);
+  free(initial_mat);
+  free(roots_exact);
+  free(all_roots_exact);
+  free(rows_done);
+
   
-  return 0;
-  
+  return 0;  
 }
