@@ -28,9 +28,7 @@ In addition to the source code for your solution, you have to write a report in 
 **emphasized**
 
 
-[comment]: # 	This is a comment which is
-	completely ignored.
-{comment}
+[comment]:  # This is a comment which is completely ignored.
 
 
 An image defined by URL: ![per](http://www.chalmers.se/siteCollectionImages/institutioner/MV/Profilbilder/perljung.jpg)
@@ -48,6 +46,6 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTgyNzcxODg5NCw0MTMyNDY0LDIwOTc3OD
-EwMjRdfQ==
+eyJoaXN0b3J5IjpbLTI5MjMzODkzLDQxMzI0NjQsMjA5Nzc4MT
+AyNF19
 -->
