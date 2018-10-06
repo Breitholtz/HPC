@@ -18,18 +18,19 @@ In addition to the source code for your solution, you have to write a report in 
 |----
 | cell1   | cell2   | cell3   |
 | cell4   | cell5   | cell6   |
-|=
-| Foot1   | Foot2   | Foot3 | {: rules="groups"}
+|=====
+| Foot1   | Foot2   | Foot3   |
+{: rules="groups"}
 
-#### slightly emphasized 
+### slightly emphasized 
 *emphasized*
-#### More emphasized
+### More emphasized
 **emphasized**
 
-{::comment}
+{comment}
 	This is a comment which is
 	completely ignored.
-{:/comment}
+comment}
 
 
 An image defined by URL: ![per](http://www.chalmers.se/siteCollectionImages/institutioner/MV/Profilbilder/perljung.jpg)
@@ -47,6 +48,6 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNDUyNTcyNjM4LDQxMzI0NjQsMjA5Nzc4MT
-AyNF19
+eyJoaXN0b3J5IjpbLTYxNDM2MTQ5Miw0MTMyNDY0LDIwOTc3OD
+EwMjRdfQ==
 -->
