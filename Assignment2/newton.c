@@ -174,7 +174,7 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 		iterations[i][jx] = iterations_loc;
 		pthread_mutex_unlock(&mutex_data);
 	}
-		pthread_mutex_lock(&mutex_write);
+ 	        pthread_mutex_lock(&mutex_write); // unnecessary? just keep it in the data mutex?
 		rows_done[i] = 1;
 		pthread_mutex_unlock(&mutex_write);
      }
@@ -192,61 +192,86 @@ void * writeppm(void * args) { // void * since we want it to work with threads
   int * rows_done=arguments->rows_done;
   int ** iterations= arguments->iterations;
   int ** result = arguments->result;
-  char str[26];
-  char str2[26];
-  sprintf(str, "newton_attractors_x%i.ppm", *power);
-  FILE * fp  =fopen(str,"w");
-  fprintf(fp,"P3\n%d %d\n%d\n",size,size,*power);
-  fclose(fp);
-  sprintf(str2, "newton_convergence_x%i.ppm", *power);  
-  FILE * fp2  =fopen(str,"w");
-  fprintf(fp2,"P3\n%d %d\n%d\n",size,size, *power); 
-  fclose(fp2);
+  
   
   //fwrite the info that is available from the newton function
    int sum_array=0;
    const int SIZE =*size;
    int rows_written[SIZE];
-   int iterations_loc[SIZE][SIZE];
-   int result_loc[SIZE][SIZE];
-   /*
+   
+   // creating local data arrays;
+   
+   u_char * iterations_mat=(u_char *)malloc(SIZE*SIZE*3);
+   u_char * result_mat= (u_char *)malloc(SIZE*SIZE*3);
+   u_char ** result_loc=(u_char **)malloc(SIZE*sizeof(u_char *));
+   u_char ** iterations_loc=(u_char **)malloc(SIZE*sizeof(u_char *));
+
+   for(size_t ix=0, jx=0; ix<SIZE;ix++, jx+=SIZE){
+     result_loc[ix]=result_mat + 3*jx;
+     iterations_loc[ix]=iterations_mat + 3*jx;
+   }
+   int current_index;
+
    while(sum_array<SIZE){
     sum_array=0;
     // pause to let threads finish rows?
     pthread_mutex_lock(&mutex_write);
     for(size_t index=0;index<SIZE;index++){
       sum_array+=rows_written[index];
-      if(rows_done[index]|| !rows_written[index]){
+      if(rows_done[index] && !rows_written[index]){
 	// if found entry:  note that it is done write that row to file
 	rows_written[index]=1;
+	current_index=index;
 	break;
       }
+      
     }
      pthread_mutex_unlock(&mutex_write);
-    // write to data here??
-     
-     
-     // 2D array for colors (or shades of gray) 
-     unsigned char data[SIZE][SIZE];
+    
                
-     // fill the data array 
-     for (size_t y = 0; y < SIZE; ++y) {
-       for (size_t x = 0; x < SIZE; ++x){
-	 data[y][x] = (x + y) & 255;
+     // fill the data array, Mutex necessary???
+     printf("HERE\n");
+     pthread_mutex_lock(&mutex_data);
+     for (size_t y = 0; y < SIZE; y++) { // what do we do here?
+       for (size_t x=0;x<3;x++){
+	 result_loc[current_index][3*y+x] = (u_char) result[current_index][y];
+	 iterations_loc[current_index][3*y+x] = (u_char) iterations[current_index][y]; // bitwise operation & ok????
        }
      }
-     
-     if(sum_array==SIZE)
+     pthread_mutex_unlock(&mutex_data);
+     printf("FAILBOI\n");
+     if(sum_array==SIZE){
        break;
+}
      }
-   // fwrite whole thing??
-   //rite the whole data array to ppm file in one step
-     fp = fopen(str, "wb");
+   // create filenames
+   char str[26];
+  char str2[26];
+  sprintf(str, "newton_attractors_x%i.ppm", *power);
+  sprintf(str2, "newton_convergence_x%i.ppm", *power);
+  FILE * fp;
+  FILE * fp2;
+  
+   // write the whole data array to ppm file in one step
+     fp = fopen(str, "w");
+     fprintf(fp,"P3\n%d %d\n%d\n",size,size,255); // header
+
      //write image data bytes to the file 
-     fwrite(data, SIZE*SIZE, 1, fp);
+     fwrite(result_mat, SIZE*SIZE*3 , 1, fp); // works??
      fclose(fp);
-     printf("OK - file %s saved\n", filename);
-     */
+
+     fp2 = fopen(str2, "w");
+     fprintf(fp2,"P3\n%d %d\n%d\n",size,size, 255); // header
+
+     //write image data bytes to the file 
+     fwrite(iterations_mat, SIZE*SIZE*3, 1, fp); // works??
+     fclose(fp2);
+     
+     printf("-----------OK - file %s and %s saved\n------------", str,str2);
+     free(result_loc);
+     free(result_mat);
+     free(iterations_loc);
+     free(iterations_mat);
   return NULL;
 }
 
