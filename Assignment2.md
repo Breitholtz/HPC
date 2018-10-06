@@ -39,7 +39,7 @@ completely ignored.
 
 
 
-An image defined by URL: ![gustav](http://www.chalmers.se/siteCollectionImages/institutioner/MV/Profilbilder/gustavlindwall.)
+An image defined by URL: ![gustav](http://www.chalmers.se/siteCollectionImages/institutioner/MV/Profilbilder/perljung.jpg)
 
 ## code example
 
@@ -54,6 +54,6 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTgyNzQxNDE1NiwtOTkwMjU5MTA4LC0xNj
+eyJoaXN0b3J5IjpbMTIxNzY2NjM4NSwtOTkwMjU5MTA4LC0xNj
 E0ODU4NzQzLDQxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
