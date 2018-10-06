@@ -27,7 +27,6 @@ In addition to the source code for your solution, you have to write a report in 
 ### More emphasized
 **emphasized**
 
-
 [comment]:  # This is a comment which is completely ignored.
 
 
@@ -46,6 +45,6 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTI5MjMzODkzLDQxMzI0NjQsMjA5Nzc4MT
-AyNF19
+eyJoaXN0b3J5IjpbLTE2MTQ4NTg3NDMsNDEzMjQ2NCwyMDk3Nz
+gxMDI0XX0=
 -->
