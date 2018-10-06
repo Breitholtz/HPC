@@ -2,11 +2,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
-//#include "acb_poly.h"  //   http://arblib.org/acb_poly.html#acb-poly     - necessary?
 #include <math.h>      
-//#include "acb.h"
-//#include "arb_fmpz_poly.h"
-//#include "flint/arith.h" // necessary?
 
 #define DIST 0.001
 #define MAX 10000000000
@@ -24,7 +20,7 @@ struct newton_arguments{
   float ** roots_exact;
   int index;
   int * rowsize;
-  int * num_rows;
+  int num_rows;
   int * rows_done;
   int ** result;
 };
@@ -40,13 +36,12 @@ struct newton_arguments{
 pthread_mutex_t mutex_data;
 pthread_mutex_t mutex_write; 
    
-//struct arguments is what we use to pass out multiple return values
+
 struct arguments parse_args(char * args[]){
   
   char * rest1;
   char * rest2;
   char * rest3;
-
 
 
   // argument 1
@@ -115,13 +110,13 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 	float ** initial = arg->initial; //initial value pointer  
 	int ** iterations = arg->iterations; // iteration pointer
 	int d_loc = *arg->power; //polynomial degree
-	int  n_loc = *arg->num_rows; //numrows_first ; how many rows this thread is handling
+	int n_loc = arg->num_rows; //numrows_first ; how many rows this thread is handling
 	float ** root_exact = arg->roots_exact;
-	int  rowsize = *arg->rowsize; // how long each row is
+	int rowsize = *arg->rowsize; // how long each row is
 	int rownumber = arg->index; // index of the first row in the memory block so we know where to put it after computation
 	int * rows_done = arg->rows_done;  // pointer to keep track of calculated roots
 	int ** result = arg->result;
-	
+	printf("power: %d",d_loc);
 	float z_re;
 	float z_im;
 	float arg_z;
@@ -130,7 +125,7 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 	int True;
 	int iterations_loc;
 	int which_root;
-	printf("number of rows %d; initial x1 %f; initial y1 %f; rownumber %d; root real %f; root imag %f;root2 real %f; root2 imag %f\n",n_loc,initial[0][2],initial[0][3],rownumber,root_exact[0][0],root_exact[0][1],root_exact[1][0],root_exact[1][1]);
+	printf("number of rows %d; initial x1 %f; initial y1 %f; rownumber %d; root real %f; root imag %f;root2 real %f; root2 imag %f\n",n_loc,initial[n_loc-1][2*n_loc+1],initial[n_loc-1][2*n_loc+1],rownumber,root_exact[0][0],root_exact[0][1],root_exact[1][0],root_exact[1][1]);
      for(int ix = rownumber; ix < n_loc; ix++){
 	for(int jx = 0; jx < rowsize; jx++){ 
 		True = 0;
@@ -140,7 +135,7 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 		z_re=initial[ix][2*jx];
 		z_im=initial[ix][2*jx+1];
 		//Newtons method
-		
+		// if((ix%100)==0) printf("RE: %f; IM: %f",initial[ix][2*jx],initial[ix][2*jx+1]);
 		while((True==0) && ( abs(z_re) < MAX) && (abs(z_im) < MAX)){
 			arg_z = atan2(z_im, z_re);
 			abs_z = z_re* z_re + z_im* z_im;
@@ -181,11 +176,12 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 		pthread_mutex_unlock(&mutex_data);
 	}
  	        pthread_mutex_lock(&mutex_write); // unnecessary? just keep it in the data mutex?
-		printf("index: %d;\n",ix);
+		//printf("index: %d;\n",ix);
 		rows_done[ix] = 1;
 		pthread_mutex_unlock(&mutex_write);
 	     
      }
+     printf("-------------DONE WITH THREAD-------------\n");
 	return NULL;
 }
 
@@ -203,7 +199,7 @@ void * writeppm(void * args) { // void * since we want it to work with threads
   
   int sum_array=0;
   const int SIZE =*size;
-  int rows_written[SIZE];
+  int rows_written[SIZE]; // initialise???
    
    // creating local data arrays;
    
@@ -221,7 +217,6 @@ void * writeppm(void * args) { // void * since we want it to work with threads
    while(sum_array<SIZE){
     sum_array=0;
     // pause to let threads finish rows?
-    //sleep(10);
     pthread_mutex_lock(&mutex_write);
     for(size_t index=0;index<SIZE;index++){
       sum_array+=rows_written[index];
@@ -244,7 +239,7 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 	   }  
                
      // fill the data array, Mutex necessary???
-	 //	 printf("result; current_index: %d; rows_done %d; result: %d\n",current_index,rows_done[current_index],result[current_index][0]);
+	 printf("result; current_index: %d; rows_done %d; result: %d\n",current_index,rows_done[current_index],result[current_index][0]);
 	 //printf("HERE\n");
 	 //pthread_mutex_lock(&mutex_data);
      for (size_t y = 0; y < SIZE; y++) { // what do we do here?
@@ -332,22 +327,25 @@ int main(int argc, char * argv[] ){
    for ( size_t ix = 0, jx = 0; ix < size; ++ix, jx+=size ){ // setting pointers to every row in memory
        result[ix]= result_mat + jx;
        iterations[ix] = iterations_mat + jx;
-       initial[ix] = initial_mat+jx;
-       initial[2*ix]=initial_mat+2*jx;
+   }
+   for(size_t i=0, j = 0; i<size;i++,j+=2*size ){
+     initial[i]= initial_mat + j;
    }
    
    for(size_t ix=0;ix<size;ix++){// row
-     for (size_t jx =0;jx<size;jx+=2){//column
-       initial[ix][jx]=-2+(2*jx)/(float)size; // initial x
-       initial[ix][jx+1]=2-(2*ix)/(float)size; // initial y
+     for (size_t jx =0;jx<2*size;jx+=2){//column
+       initial[ix][jx]=-2+(2*jx)/(float)(size-1); // initial x
+       initial[ix][jx+1]=2-(2*jx)/(float)(size-1); // initial y
      }
    }
+
    int * rows_done =malloc(sizeof(int*)*size);
    for (size_t i=0;i<size;i++){
      rows_done[i]=0;
    }
 
-   printf("initial x %f, initital y %f \n", initial[0][0],initial[0][1]);
+   
+    printf("initial x %f, initital y %f \n", initial[size-1][2*(size-1)+1],initial[size-1][2*(size-1)+1]);
    printf("----------------After memory allocation---------------\n");
    int ret;
    pthread_t threads[thread_count+1]; // create one extra for writing to file
@@ -377,6 +375,7 @@ int main(int argc, char * argv[] ){
    }
     printf("-----------Start writing thread----------\n");
 // do writing thread
+    
    struct write_arguments arg;
     arg.power=&power; // exponent
     arg.size=&size; // length
@@ -387,13 +386,13 @@ int main(int argc, char * argv[] ){
     printf("Error creating thread: %\n", ret);
     exit(1);
   }
-
+    printf("power: %d",power);
  printf("-----------Start Newton threads----------\n");
 // do first thread with the extra rows that may exist if #rows is not divisible by #threads
  int numrows_first = numrows+numrest;
  int *index=malloc(4*sizeof(int));
  index[0]=0;
- for(int i=1;i<thread_count;i++){
+ for(size_t i=1;i<thread_count;i++){
    index[i]=numrows_first+(i-1)*numrows;
  }
  struct newton_arguments args[thread_count];
@@ -402,7 +401,7 @@ int main(int argc, char * argv[] ){
   args[0].iterations = iterations;
   args[0].rowsize=&size;
   args[0].power = &power;
-  args[0].num_rows = &numrows_first;
+  args[0].num_rows = numrows_first;
   args[0].index=index[0];
   args[0].roots_exact = roots_exact;
   args[0].rows_done=rows_done;
@@ -414,7 +413,7 @@ int main(int argc, char * argv[] ){
 
   
 // do the rest of the threads
-    for (int tx=1, ix=numrows_first; tx < thread_count; ++tx, ix+=numrows){ 
+    for (size_t tx=1, ix=numrows_first; tx < thread_count; ++tx, ix+=numrows){ 
  printf("numrows %d; index %d\n",numrows,ix);
    args[tx].initial = initial;
    args[tx].iterations = iterations;
@@ -422,7 +421,7 @@ int main(int argc, char * argv[] ){
    args[tx].power = &power;
    args[tx].rowsize=&size;
    args[tx].index=index[tx]; 
-   args[tx].num_rows= &numrows;
+   args[tx].num_rows= numrows_first+numrows*tx;
    args[tx].roots_exact = roots_exact;
    args[tx].rows_done=rows_done;
    if (ret = pthread_create(threads+tx, NULL, threaded_newton, &args[tx])) {
@@ -431,13 +430,17 @@ int main(int argc, char * argv[] ){
     }
   }
     printf("---------------All threads created-----------\n");
-  // joining threads
-  for (size_t tx=0; tx < thread_count+1; ++tx) { // +1 for write thread
+  // joining threads if done
+    
+  for (size_t tx=0; tx < thread_count; ++tx) { // +1 for write thread
     if (ret = pthread_join(threads[tx], NULL)) {
       printf("Error joining thread: %d\n", ret);
       exit(1);
     }
   }
+  printf("-------------------JOINED THREADS-----------------\n");
+   pthread_join(threads[thread_count],NULL);
+   printf("-----------JOINED WRITE THREAD---------------\n");
   /*
   //  for(size_t i=0;i<size;i++){
     for(size_t j=0;j<size;j++){
