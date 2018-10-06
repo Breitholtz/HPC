@@ -30,6 +30,15 @@ In addition to the source code for your solution, you have to write a report in 
 **emphasized**
 
 
+This is a paragraph
+{::comment}
+This is a comment which is
+completely ignored.
+{:/comment}
+... paragraph continues here.
+
+
+
 An image defined by URL: ![per](http://www.chalmers.se/siteCollectionImages/institutioner/MV/Profilbilder/perljung.jpg)
 
 ## code example
@@ -45,6 +54,6 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTg5NTE4NjA3NSwtMTYxNDg1ODc0Myw0MT
+eyJoaXN0b3J5IjpbLTk5MDI1OTEwOCwtMTYxNDg1ODc0Myw0MT
 MyNDY0LDIwOTc3ODEwMjRdfQ==
 -->
