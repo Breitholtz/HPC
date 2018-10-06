@@ -27,10 +27,10 @@ In addition to the source code for your solution, you have to write a report in 
 ### More emphasized
 **emphasized**
 
-{comment}
-	This is a comment which is
+
+[comment]: # 	This is a comment which is
 	completely ignored.
-comment}
+{comment}
 
 
 An image defined by URL: ![per](http://www.chalmers.se/siteCollectionImages/institutioner/MV/Profilbilder/perljung.jpg)
@@ -48,6 +48,6 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTYxNDM2MTQ5Miw0MTMyNDY0LDIwOTc3OD
+eyJoaXN0b3J5IjpbLTgyNzcxODg5NCw0MTMyNDY0LDIwOTc3OD
 EwMjRdfQ==
 -->
