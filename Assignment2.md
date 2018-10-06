@@ -18,8 +18,7 @@ In addition to the source code for your solution, you have to write a report in 
 | cell1   | cell2   | cell3   |
 | cell4   | cell5   | cell6   |
 |=====
-| Foot1   | Foot2   | Foot3
-{: rules="groups"}
+| Foot1   | Foot2   | Foot3 | {: rules="groups"}
 
 #### slightly emphasized 
 *emphasized*
@@ -47,5 +46,5 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjA5Nzc4MTAyNF19
+eyJoaXN0b3J5IjpbNDEzMjQ2NCwyMDk3NzgxMDI0XX0=
 -->
