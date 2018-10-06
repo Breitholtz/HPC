@@ -2,6 +2,8 @@
 
 In addition to the source code for your solution, you have to write a report in (kramdoc compatible) markdown that explains your solution, with focus on the program layout and performance characteristics. You shall also answers all questions posed in context of the assignment, if there is any.
 
+# Useful syntax help
+
 1. This is a list item
 2. And another item
 2. And the third one
@@ -27,8 +29,6 @@ In addition to the source code for your solution, you have to write a report in 
 ### More emphasized
 **emphasized**
 
-[comment]:  # This is a comment which is completely ignored.
-
 
 An image defined by URL: ![per](http://www.chalmers.se/siteCollectionImages/institutioner/MV/Profilbilder/perljung.jpg)
 
@@ -45,6 +45,6 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE2MTQ4NTg3NDMsNDEzMjQ2NCwyMDk3Nz
-gxMDI0XX0=
+eyJoaXN0b3J5IjpbLTg5NTE4NjA3NSwtMTYxNDg1ODc0Myw0MT
+MyNDY0LDIwOTc3ODEwMjRdfQ==
 -->
