@@ -47,6 +47,7 @@ struct arguments parse_args(char * args[]){
 
   // argument 1
   long res1;
+  long res2;
   if(strncmp(args[1], "-t",2)==0){ // then take the rest of the string and convert to long
     
     char  T[strlen(args[1])-1];
@@ -57,16 +58,27 @@ struct arguments parse_args(char * args[]){
      printf("Invalid argument '%ld' or Junk '%s' at end of argument 1!\n",res1,rest1);
      exit(1);
    }else{
-   printf(" arg1 is %d\n",(int)res1);
+   printf(" thread argument is %d\n",(int)res1);
    }
+  }else if(strncmp(args[1], "-l",2)==0){
+  char  T[strlen(args[1])-1];
+   strncpy(T,args[1]+2,strlen(args[1])-2);
+   T[strlen(args[1])-2]='\0';
+    res2 = strtol(T,&rest2,10);
+   if(strcmp(rest2,"")!=0 || res2<1){
+     printf("Invalid argument '%ld' or Junk '%s' at end of argument 2!\n",res2,rest2);
+     exit(1);
+   }else{
+   printf(" size argument is %d\n",(int)res2);
+   }  
   }else{
-  printf("Missing -t flag for first argument!!!\n");
+  printf("Unknown first argument!!!\n");
   exit(1);
  }
 
 
   // argument 2
-  long res2;
+ 
  if(strncmp(args[2], "-l",2)==0){ // then take the rest of the string and convert to long
     
     char  T[strlen(args[2])-1];
@@ -77,10 +89,21 @@ struct arguments parse_args(char * args[]){
      printf("Invalid argument '%ld' or Junk '%s' at end of argument 2!\n",res2,rest2);
      exit(1);
    }else{
-   printf(" arg2 is %d\n",(int)res2);
+   printf(" length argument is %d\n",(int)res2);
    }
-  }else{
-  printf("Missing -l flag for second argument!!!\n");
+ }else if(strncmp(args[2], "-t",2)==0){
+ char  T[strlen(args[2])-1];
+   strncpy(T,args[2]+2,strlen(args[2])-2);
+   T[strlen(args[2])-2]='\0';
+   res1 = strtol(T,&rest1,10);
+   if(strcmp(rest1,"")!=0 || res1<1){
+     printf("Invalid argument '%ld' or Junk '%s' at end of argument 1!\n",res1,rest1);
+     exit(1);
+   }else{
+   printf(" thread argument is %d\n",(int)res1);
+   }
+ }else{
+  printf("Unknown second argument!!!\n");
   exit(1);
  }
 
@@ -295,8 +318,38 @@ int main(int argc, char * argv[] ){
   
   // Parse command line arguments
   printf("No. args %d; Arg %s, %s, %s, %s\n",argc, argv[0],argv[1],argv[2],argv[3]);
-  struct arguments A;
+    struct arguments A;
   A=parse_args(argv);
+  /* possible change
+  const char * options[3];
+  options[0]="t";
+  options[1]="l";
+  int c;
+  opterr = 0;
+  while ((c = getopt (argc, argv, "abc:")) != -1)
+    switch (c)
+      {
+      case 'a':
+	aflag = 1;
+	break;
+      case 'b':
+	bflag = 1;
+	break;
+      case 'c':
+	cvalue = optarg;
+	break;
+      case '?':
+	if (optopt == 'c')
+	  fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+	else if (isprint (optopt))
+	  fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+	else
+	  fprintf (stderr,"Unknown option character `\\x%x'.\n",optopt);
+	return 1;
+      default:
+	abort ();
+      }*/
+  
   printf("-------------------Arguments parsed----------------\n");
   printf("Arguments: 1:%d 2:%d 3:%d\n",A.threads, A.length, A.power); // remove later
 
