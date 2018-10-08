@@ -6,6 +6,7 @@
 
 #define DIST 0.001
 #define MAX 10000000000
+
 struct arguments{
   int threads;
   int length;
@@ -116,7 +117,8 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 	int rownumber = arg->index; // index of the first row in the memory block so we know where to put it after computation
 	int * rows_done = arg->rows_done;  // pointer to keep track of calculated roots
 	int ** result = arg->result;
-	printf("power: %d",d_loc);
+      
+	
 	float z_re;
 	float z_im;
 	float arg_z;
@@ -125,7 +127,8 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 	int True;
 	int iterations_loc;
 	int which_root;
-	printf("number of rows %d; initial x1 %f; initial y1 %f; rownumber %d; root real %f; root imag %f;root2 real %f; root2 imag %f\n",n_loc,initial[n_loc-1][2*n_loc+1],initial[n_loc-1][2*n_loc+1],rownumber,root_exact[0][0],root_exact[0][1],root_exact[1][0],root_exact[1][1]);
+	
+	printf("number of rows %d; initial x1 %f; initial y1 %f; rownumber %d; root real %f; root imag %f\n",n_loc,initial[n_loc-1][2*n_loc+1],initial[n_loc-1][2*n_loc+1],rownumber,root_exact[0][0],root_exact[0][1]);
      for(int ix = rownumber; ix < n_loc; ix++){
 	for(int jx = 0; jx < rowsize; jx++){ 
 		True = 0;
@@ -135,7 +138,7 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 		z_re=initial[ix][2*jx];
 		z_im=initial[ix][2*jx+1];
 		//Newtons method
-		// if((ix%100)==0) printf("RE: %f; IM: %f",initial[ix][2*jx],initial[ix][2*jx+1]);
+	      
 		while((True==0) && ( abs(z_re) < MAX) && (abs(z_im) < MAX)){
 			arg_z = atan2(z_im, z_re);
 			abs_z = z_re* z_re + z_im* z_im;
@@ -172,7 +175,7 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 		pthread_mutex_lock(&mutex_data);
 	        result[ix][jx]=which_root;
 		iterations[ix][jx] = iterations_loc;
-		//printf("res: %d\n",result[i][jx]);
+		//printf("res: %d\n",result[ix][jx]);
 		pthread_mutex_unlock(&mutex_data);
 	}
  	        pthread_mutex_lock(&mutex_write); // unnecessary? just keep it in the data mutex?
@@ -226,22 +229,18 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 	current_index=index;
 	break;
       }
-      
-    }
-         
+    }    
       pthread_mutex_unlock(&mutex_write);
   	 if(sum_array<1){
 	   continue;
 	 }
-	 
 	 if(sum_array==SIZE){
 	   break;
 	   }  
                
      // fill the data array, Mutex necessary???
-	 printf("result; current_index: %d; rows_done %d; result: %d\n",current_index,rows_done[current_index],result[current_index][0]);
-	 //printf("HERE\n");
-	 //pthread_mutex_lock(&mutex_data);
+	 //printf("result; current_index: %d; rows_done %d; result: %d\n",current_index,rows_done[current_index],result[current_index][0]);
+	 pthread_mutex_lock(&mutex_data);
      for (size_t y = 0; y < SIZE; y++) { // what do we do here?
        for (size_t x=0;x<3;x++){
 	 // printf("result[current_index][y]:%d\n",result[current_index][y]);
@@ -249,9 +248,7 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 	 iterations_loc[current_index][3*y+x] = (u_char) iterations[current_index][y]; // bitwise operation & ok????
        }
      }    
-     //  pthread_mutex_unlock(&mutex_data);
-
-
+       pthread_mutex_unlock(&mutex_data);
    }
         printf("-----------Got out of while loop and going to writing stage------------\n");
    // create filenames
@@ -358,7 +355,7 @@ int main(int argc, char * argv[] ){
 // precalculate the roots to the chosen polynomial
    
    float * all_roots_exact = malloc(2*power*sizeof(float));
-   float ** roots_exact = malloc(2*power*sizeof(float*));
+   float ** roots_exact = malloc(power*sizeof(float*));
    //   printf("before\n");
    
    for (size_t i=0, j=0;i<power;i++ ,j+=2){
@@ -372,6 +369,7 @@ int main(int argc, char * argv[] ){
      float theta = i*2*M_PI/power;
      roots_exact[i][0] = cos(theta);
      roots_exact[i][1] = sin(theta);
+     printf("woop %f %f\n", roots_exact[i][0],roots_exact[i][1]);
    }
     printf("-----------Start writing thread----------\n");
 // do writing thread
@@ -382,11 +380,11 @@ int main(int argc, char * argv[] ){
     arg.rows_done=rows_done;
     arg.result=result;
     arg.iterations=iterations;
-    if (ret = pthread_create(threads+thread_count, NULL, writeppm, &arg)) {
+    if (ret = pthread_create(threads+thread_count, NULL, writeppm, (void*) &arg)) {
     printf("Error creating thread: %\n", ret);
     exit(1);
   }
-    printf("power: %d",power);
+    //    printf("power: %d",power);
  printf("-----------Start Newton threads----------\n");
 // do first thread with the extra rows that may exist if #rows is not divisible by #threads
  int numrows_first = numrows+numrest;
@@ -405,7 +403,7 @@ int main(int argc, char * argv[] ){
   args[0].index=index[0];
   args[0].roots_exact = roots_exact;
   args[0].rows_done=rows_done;
-  if (ret = pthread_create(threads, NULL, threaded_newton, &args)) {
+  if (ret = pthread_create(threads, NULL, threaded_newton, (void*) &args[0])) {
     printf("Error creating thread: %\n", ret);
     exit(1);
   }
@@ -424,7 +422,7 @@ int main(int argc, char * argv[] ){
    args[tx].num_rows= numrows_first+numrows*tx;
    args[tx].roots_exact = roots_exact;
    args[tx].rows_done=rows_done;
-   if (ret = pthread_create(threads+tx, NULL, threaded_newton, &args[tx])) {
+   if (ret = pthread_create(threads+tx, NULL, threaded_newton, (void *)&args[tx])) {
       printf("Error creating thread: %\n", ret);
       exit(1);
     }
