@@ -17,10 +17,12 @@ Additionally,  we use the following include files:
 In the main function we start by calling the argument parsing function which assigns the command line arguments to global variables. 
 
 ###  parse_args
-This function is in charge of parsing the command line arguments and 
+This function is in charge of parsing the command line arguments. It starts by using strncmp to see of the first two charac
+
+### threaded_newton
 
 
-
+### writeppm
 In addition to the source code for your solution, you have to write a report in (kramdoc compatible) markdown that explains your solution, with focus on the program layout and performance characteristics. You shall also answers all questions posed in context of the assignment, if there is any.
 
 # Useful syntax help
@@ -75,7 +77,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTA0NzkwNTEyMSwtNDk3NzkwMTU0LDEyMT
+eyJoaXN0b3J5IjpbLTUzMzYwNjUwMywtNDk3NzkwMTU0LDEyMT
 c2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0Myw0MTMyNDY0
 LDIwOTc3ODEwMjRdfQ==
 -->
