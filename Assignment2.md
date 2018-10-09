@@ -4,7 +4,10 @@ In this assignment we have implemented parallellism with POSIX threads. This was
 
 This information is then stored in a global array and simultaneously written to a .ppm file by a separate thread. This thread only writes the information to file and has no part in the computations mentioned above. 
 
-## 	
+We will go through and explain the different parts of the program.
+
+### 	Main
+In the main function we start by calling the 
 
 
 
@@ -63,7 +66,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTQ5Nzc5MDE1NCwxMjE3NjY2Mzg1LC05OT
-AyNTkxMDgsLTE2MTQ4NTg3NDMsNDEzMjQ2NCwyMDk3NzgxMDI0
-XX0=
+eyJoaXN0b3J5IjpbMjA4Nzc2NTYwNiwtNDk3NzkwMTU0LDEyMT
+c2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0Myw0MTMyNDY0
+LDIwOTc3ODEwMjRdfQ==
 -->
