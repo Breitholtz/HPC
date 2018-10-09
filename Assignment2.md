@@ -45,7 +45,7 @@ This function is used to take the data that is computed by threaded_newton and w
 
 It first creates two character arrays on the stack which we will store our filenames in. Then sprintf is employed to create the filenames. Then the two files are created and opened for writing.
 
-We use fprintf to easily write the header to both files, then we proceed to the main writing stage. It consists of a while loop which runs until an index $ix$ is equal to SIZE, i.e until we have fully written all the rows to the files. Inside we have a an if-statement which checks if row $ix$ is done.  If te
+We use fprintf to easily write the header to both files, then we proceed to the main writing stage. It consists of a while loop which runs until an index $ix$ is equal to SIZE, i.e until we have fully written all the rows to the files. Inside we have a an if-statement which checks if row $ix$ is done.  If the row isn't done then we continue and wait for it to be done.
 
 If the row is done then we proceed to write it to the files with..... We also check if the iterations are larger than a chosen max  value, MAX_ITER, and if they are we set them to the max. After this we increment $ix$ and continue waiting until the next row is done. This repeats until the writing is finished. We then close the files and return.
 
@@ -108,7 +108,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTUwNzQyNjEyNiwyMDk5MzEwNjA1LDEwMj
+eyJoaXN0b3J5IjpbLTM4MDI3MzY3MSwyMDk5MzEwNjA1LDEwMj
 E5OTk2MzksOTg1MzU0MzgsLTQ5Nzc5MDE1NCwxMjE3NjY2Mzg1
 LC05OTAyNTkxMDgsLTE2MTQ4NTg3NDMsNDEzMjQ2NCwyMDk3Nz
 gxMDI0XX0=
