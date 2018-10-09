@@ -12,7 +12,7 @@ Additionally,  we use the following include files:
 * string - for comparing strings
 * time - for our own benchmarking
  We will go through and explain the different parts of the program.
-// TODO: explain more what the 
+// TODO: explain more what the program does and how it is related to the command line arguments.
 ### 	Main
 In the main function we start by calling the argument parsing function, parse_args, which assigns the command line arguments to global variables. We then use these to allocate some memory which we will use some (previously defined) global arrays to point to. These global arrays are:
 * initial - used to point to the initial values that we want our Newton function to start at. 
@@ -37,9 +37,9 @@ Finally it takes the arguments that it has parsed and assigns them to the global
 This is the function which is used to calculate the convergence of every point in our picture. 
 
 ### writeppm
+This function is used to 
 
-
-
+// IDEAS: to check our programs performance characteristic we can time ee
 # Additional stuff
 In addition to the source code for your solution, you have to write a report in (kramdoc compatible) markdown that explains your solution, with focus on the program layout and performance characteristics. You shall also answers all questions posed in context of the assignment, if there is any.
 
@@ -95,7 +95,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTQzMTYzNzAwMywxMDIxOTk5NjM5LDk4NT
+eyJoaXN0b3J5IjpbMTY1NDY4MTgzNiwxMDIxOTk5NjM5LDk4NT
 M1NDM4LC00OTc3OTAxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4
 LC0xNjE0ODU4NzQzLDQxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
