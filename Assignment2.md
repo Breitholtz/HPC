@@ -16,7 +16,7 @@ Additionally,  we use the following include files:
 ### 	Main
 In the main function we start by calling the argument parsing function which assigns the command line arguments to global variables. We then use these to allocate some memory which we will use some (previously defined) global arrays to point to. These global arrays are:
 * initial - used to point to the initial values that we want our Newton function to start at. 
-* iterations - used to point to the store of the 
+* iterations - used to point to the memory where we store the number of iterations for each point, integer
 
 ###  parse_args
 This function is in charge of parsing the command line arguments. It starts by using strncmp to see of the first two characters of the first argument matches any of our supported flags (-t or -l) and uses strtol to parse the number after the flag. It prints an error message to stdout and exits if if there is either something that cannot be parsed after the flag or if the flag/argument is invalid/unknown.
@@ -83,7 +83,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTM4NTUzODEwMyw5ODUzNTQzOCwtNDk3Nz
+eyJoaXN0b3J5IjpbMTQ0MjgxMjEwMiw5ODUzNTQzOCwtNDk3Nz
 kwMTU0LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0
 Myw0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
 -->
