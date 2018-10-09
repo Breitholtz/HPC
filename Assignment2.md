@@ -40,7 +40,6 @@ This is the function which is used to calculate the convergence of every point i
 The function itself consists of several nested loops
 //TODO: explain that we use a global index to tell each thread which row to compute next.
 ### writeppm
--explain that we do them in order this way
 This function is used to take the data that is computed by threaded_newton and write it to two .ppm files. One for the iterations and one for which root the function converged to for each point. 
 
 It first creates two character arrays on the stack which we will store our filenames in. Then sprintf is employed to create the filenames. Then the two files are created and opened for writing.
@@ -49,7 +48,7 @@ We use fprintf to easily write the header to both files, then we proceed to the 
 
 If the row is done then we proceed to write it to the files with..... We also check if the iterations are larger than a chosen max  value, MAX_ITER, and if they are we set them to the max. After this we increment $ix$ and continue waiting until the next row is done. This repeats until the writing is finished. We then close the files and return.
 
-One should note that the while loop in this function ensures that th
+One should note that the while loop in this function ensures that the rows of the arrays are written in consecutive order which means that the picure will be assembled correctly.
 
 //TODO: change implementation so that we use fwrite 
 
@@ -110,8 +109,8 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTExMjc4MTQzMjYsLTM4MDI3MzY3MSwyMD
-k5MzEwNjA1LDEwMjE5OTk2MzksOTg1MzU0MzgsLTQ5Nzc5MDE1
-NCwxMjE3NjY2Mzg1LC05OTAyNTkxMDgsLTE2MTQ4NTg3NDMsND
-EzMjQ2NCwyMDk3NzgxMDI0XX0=
+eyJoaXN0b3J5IjpbLTY0NzA0NjQ3NywtMzgwMjczNjcxLDIwOT
+kzMTA2MDUsMTAyMTk5OTYzOSw5ODUzNTQzOCwtNDk3NzkwMTU0
+LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0Myw0MT
+MyNDY0LDIwOTc3ODEwMjRdfQ==
 -->
