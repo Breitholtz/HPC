@@ -19,8 +19,9 @@ In the main function we start by calling the argument parsing function which ass
 * iterations - used to point to the memory where we store the number of iterations for each point, this is an integer array since it should suffice with a few million iterations as a natural maximum.
 *  result - points to where we store an integer which corresponds to which root our newton method converged to
 * rows_done - an array where we keep track of which rows the program finished calculating. initialised to 0.
-* roots_exact - the array where we store the complex roots for each 
+* roots_exact - the array where we store the complex roots for the chosen  polynomial 
 
+This is followed by the computation of the roots for the given polynomial. For polynomials on the form $x^d-1$ we know that one root is always 1+0i and the rest a
 ###  parse_args
 This function is in charge of parsing the command line arguments. It starts by using strncmp to see of the first two characters of the first argument matches any of our supported flags (-t or -l) and uses strtol to parse the number after the flag. It prints an error message to stdout and exits if if there is either something that cannot be parsed after the flag or if the flag/argument is invalid/unknown.
 
@@ -86,7 +87,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTMxMDgyMTg4Myw5ODUzNTQzOCwtNDk3Nz
-kwMTU0LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0
-Myw0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
+eyJoaXN0b3J5IjpbNDYxNDg2MTY1LDk4NTM1NDM4LC00OTc3OT
+AxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4LC0xNjE0ODU4NzQz
+LDQxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
