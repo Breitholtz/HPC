@@ -13,6 +13,7 @@ Additionally,  we use the following include files:
 * time - for our own benchmarking
  We will go through and explain the different parts of the program.
 // TODO: -explain more what the program does and how it is related to the command line arguments.
+-maybe talk more about the constants that we have hardcoded and other global stuff
 ### 	Main
 In the main function we start by calling the argument parsing function, parse_args, which assigns the command line arguments to global variables. We then use these to allocate some memory which we will use some (previously defined) global arrays to point to. These global arrays are:
 * initial - used to point to the initial values that we want our Newton function to start at. 
@@ -34,11 +35,13 @@ It repeats this for the second argument and then parses the third argument direc
 Finally it takes the arguments that it has parsed and assigns them to the global variables: POWER, SIZE and THREADS.
 
 ### threaded_newton
+-explain that we use a gl
 This is the function which is used to calculate the convergence of every point in our picture. The function first assigns the argument which was sent to it into a local variable. Then the type declarations of all the used local variables follow. 
 
 The function itself consists of several nested loops
 
 ### writeppm
+-explain that we do them in order this way
 This function is used to take the data that is computed by threaded_newton and write it to two .ppm files. One for the iterations and one for which root the function converged to for each point. 
 
 It first creates two character arrays on the stack which we will store our filenames in. Then sprintf is employed to create the filenames. Then the two files are created and opened for writing.
@@ -105,8 +108,8 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE0MzkxODUyNzgsMjA5OTMxMDYwNSwxMD
-IxOTk5NjM5LDk4NTM1NDM4LC00OTc3OTAxNTQsMTIxNzY2NjM4
-NSwtOTkwMjU5MTA4LC0xNjE0ODU4NzQzLDQxMzI0NjQsMjA5Nz
-c4MTAyNF19
+eyJoaXN0b3J5IjpbOTgzMjM3MjA0LDIwOTkzMTA2MDUsMTAyMT
+k5OTYzOSw5ODUzNTQzOCwtNDk3NzkwMTU0LDEyMTc2NjYzODUs
+LTk5MDI1OTEwOCwtMTYxNDg1ODc0Myw0MTMyNDY0LDIwOTc3OD
+EwMjRdfQ==
 -->
