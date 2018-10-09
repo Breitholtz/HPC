@@ -7,8 +7,9 @@ This information is then stored in a global array and simultaneously written to 
 We will go through and explain the different parts of the program.
 
 ### 	Main
-In the main function we start by calling the 
+In the main function we start by calling the argument parsing function which assigns the command line arguments to global variables. 
 
+###  parse_ars
 
 
 
@@ -66,7 +67,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjA4Nzc2NTYwNiwtNDk3NzkwMTU0LDEyMT
+eyJoaXN0b3J5IjpbMTM5MzY3NTUxOCwtNDk3NzkwMTU0LDEyMT
 c2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0Myw0MTMyNDY0
 LDIwOTc3ODEwMjRdfQ==
 -->
