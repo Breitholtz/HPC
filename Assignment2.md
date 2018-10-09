@@ -41,7 +41,7 @@ This function is used to take the data that is computed by threaded_newton and w
 
 It first creates two character arrays on the stack which we will store our filenames in. Then sprintf is employed to create the filenames. Then the two files are created and opened for writing.
 
-We use fprintf to easily write the header to both files, then we proceed to the main writing stage. It consists of 
+We use fprintf to easily write the header to both files, then we proceed to the main writing stage. It consists of a while loop which runs until an index ix 
 
 After the    
 
@@ -103,7 +103,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEwODk2NjczODUsMTAyMTk5OTYzOSw5OD
-UzNTQzOCwtNDk3NzkwMTU0LDEyMTc2NjYzODUsLTk5MDI1OTEw
-OCwtMTYxNDg1ODc0Myw0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
+eyJoaXN0b3J5IjpbMTY0MzUyNjk5MCwxMDIxOTk5NjM5LDk4NT
+M1NDM4LC00OTc3OTAxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4
+LC0xNjE0ODU4NzQzLDQxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
