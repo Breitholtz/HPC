@@ -14,7 +14,7 @@ Additionally,  we use the following include files:
  We will go through and explain the different parts of the program.
 
 ### 	Main
-In the main function we start by calling the argument parsing function which assigns the command line arguments to global variables. We then use these to allocate some memory which we will use some (previously defined) global arrays to point to. These global arrays are:
+In the main function we start by calling the argument parsing function, parse_args, which assigns the command line arguments to global variables. We then use these to allocate some memory which we will use some (previously defined) global arrays to point to. These global arrays are:
 * initial - used to point to the initial values that we want our Newton function to start at. 
 * iterations - used to point to the memory where we store the number of iterations for each point, this is an integer array since it should suffice with a few million iterations as a natural maximum.
 *  result - points to where we store an integer which corresponds to which root our newton method converged to
@@ -22,6 +22,8 @@ In the main function we start by calling the argument parsing function which ass
 * roots_exact - the array where we store the complex roots for the chosen  polynomial 
 
 This is followed by the computation of the roots for the given polynomial. For polynomials on the form $x^d-1$ we know that one root is always 1+0i and the rest are spaced by k/d around the rest of the unit circle in the complex plane. We may then for every value of d easily precompute the values of the roots.
+
+We then create the threads 
 ###  parse_args
 This function is in charge of parsing the command line arguments. It starts by using strncmp to see of the first two characters of the first argument matches any of our supported flags (-t or -l) and uses strtol to parse the number after the flag. It prints an error message to stdout and exits if if there is either something that cannot be parsed after the flag or if the flag/argument is invalid/unknown.
 
@@ -72,7 +74,7 @@ completely ignored.
 
 
 
-An image defined by URL: ![gustav](http://www.chalmers.se/siteCollectionImages/institutioner/MV/Profilbilder/perljung.jpg)
+An image defined by URL: ![soetis](http://www.chalmers.se/siteCollectionImages/institutioner/MV/Profilbilder/perljung.jpg)
 
 ## code example
 
@@ -87,7 +89,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbOTcyNzI4OTQwLDk4NTM1NDM4LC00OTc3OT
-AxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4LC0xNjE0ODU4NzQz
-LDQxMzI0NjQsMjA5Nzc4MTAyNF19
+eyJoaXN0b3J5IjpbLTIwODU5ODU1NDcsOTg1MzU0MzgsLTQ5Nz
+c5MDE1NCwxMjE3NjY2Mzg1LC05OTAyNTkxMDgsLTE2MTQ4NTg3
+NDMsNDEzMjQ2NCwyMDk3NzgxMDI0XX0=
 -->
