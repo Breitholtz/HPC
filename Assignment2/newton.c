@@ -6,6 +6,8 @@
 #include <time.h>
 #define DIST 0.001
 #define MAX 10000000000
+#define MAX_ITER 1000
+
 pthread_mutex_t mutex_write; 
 
 // GLOBAL VARIABLES
@@ -18,7 +20,6 @@ float ** roots_exact;
 int * rows_done;
 int ** result;
 int Index;
-int MAX_ITER =1000;
 
 void parse_args(char * args[]){
   
@@ -169,16 +170,9 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 }
 
 void * writeppm(void * args) { // void * since we want it to work with threads
-
+  
   // write the information into the desired .ppm format and output the file, call the one with colours corresponding to roots newton_attractor_xd.ppm and the other newton_convergence_xd.ppm
   // where d in _xd.pmm is the power of x
-  char * colours[10];     // hardcoded colors for different results, on the stack
-  char * grayscale;     // 
-  for (size_t i=0;i<9;i++){
-    sprintf(colours[i], "%d 0 0", 20*(9-i));
-	
-  }
-  	
 	// create filenames
 	char str[26];
 	char str2[26];
@@ -186,33 +180,36 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 	sprintf(str2, "newton_convergence_x%i.ppm", POWER);
 	FILE * fp;
 	FILE * fp2;
-	fprintf(fp, "P3\n %d %d\n %d", SIZE,SIZE,255); // colour header 
-	fprintf(fp2, "P2\n %d %d\n %d", SIZE,SIZE,MAX_ITER); // grayscale header
-        /*
+	fp=fopen(str,"w");
+	fp2=fopen(str2,"w");
+	fprintf(fp, "P3\n %d %d\n %d\n", SIZE,SIZE,255); // colour header  
+	fprintf(fp2, "P3\n %d %d\n %d\n", SIZE,SIZE,MAX_ITER); // grayscale header
+
+	printf("------------WRITING-------------\n");
 	size_t ix=0;
 	while(ix < SIZE){
 		if(rows_done[ix] != 0){
 			//write to file
-		  for (size_t i=0;i<SIZE;i++){
-		  fprintf(fp, "%d %d %d ", COLOR_VALUE0, COLOR_VALUE1, COLOR_VALUE2);
-                  fprintf(fp2, "%d %d %d ", GRAY_VALUE, GRAY_VALUE, GRAY_VALUE);
+		  for (size_t jx=0;jx<SIZE;jx++){
+		  fprintf(fp, "%d %d %d ", result[ix][jx]*20, 0, 0); // "hardcoded" colors for different results
+                  fprintf(fp2, "%d %d %d ", iterations[ix][jx], iterations[ix][jx], iterations[ix][jx]);
 		  }
-			ix++
+		  ix++;
 		}
 		// continue waiting for next row
 	}
-	*/
-	fclose(fp);
+       
+       	fclose(fp);
         fclose(fp2);
    
-     /*   
-      for( size_t i=0; i<SIZE;i++){
-      string=concat(string,colors[j][i])
-}
-fwrite(string)
+       
+	//for( size_t i=0; i<SIZE;i++){
+	//string=concat(string,colors[j][i])
+	//	}
+      //fwrite(string)
      printf("-----------OK - file %s and %s saved\n------------", str,str2);
      
-  */
+	
   return NULL;
 }
 
