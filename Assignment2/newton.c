@@ -14,17 +14,17 @@ struct arguments{
 
 };
 */
-struct newton_arguments{
+//struct newton_arguments{
   //  float ** initial;
   //int  ** iterations;
   //  int * power;
   //float ** roots_exact;
-  int index;
+  // int index;
   //  int * rowsize;
-  int num_rows;
+  //int num_rows;
   //  int * rows_done;
-  int ** result;
-};
+  //  int ** result;
+  //};
 /*
   struct write_arguments{
     // int * power;
@@ -45,7 +45,7 @@ int ** iterations;
 float ** roots_exact;
 int * rows_done;
 int ** result;
-
+int Index;
 
 
 void parse_args(char * args[]){
@@ -136,7 +136,7 @@ void parse_args(char * args[]){
 void * threaded_newton(void * args){  // void * since we want it to work with threads
   
 	//access args from struct
-    struct newton_arguments *arg = args;
+  //    struct newton_arguments *arg = args;
 	
     //float ** initial = initial; //initial value pointer  
     //int ** iterations = iterations; // iteration pointer
@@ -147,7 +147,8 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 	//int rownumber = arg->index; // index of the first row in the memory block so we know where to put it after computation
 	//	int * rows_done = rows_done;  // pointer to keep track of calculated roots
 	//int ** result = arg->result;
-      
+	int * I=(int *)args;
+	Index=*I;
 	
 	float z_re;
 	float z_im;
@@ -156,17 +157,17 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 	float abs_d;
 	int True;
 	int iterations_loc;
-	int which_root =  + 1;
+	int which_root = d_loc;
 	
 	//printf("number of rows %d; initial x1 %f; initial y1 %f; rownumber %d; root real %f; root imag %f\n",n_loc,initial[n_loc-1][2*n_loc+1],initial[n_loc-1][2*n_loc+1],rownumber,root_exact[0][0],root_exact[0][1]);
-    while(index < SIZE){
+    while(Index < SIZE){
 	for(int jx = 0; jx < rowsize; jx++){ 
 		True = 0;
 		iterations_loc=0; //keep track of iterations
-		which_root=0;
-
-		z_re=initial[index][2*jx];
-		z_im=initial[index][2*jx+1];
+		//which_root=0;
+		
+		z_re=initial[Index][2*jx];
+		z_im=initial[Index][2*jx+1];
 		//Newtons method
 	      
 		while((True==0) && ( abs(z_re) < MAX) && (abs(z_im) < MAX)){
@@ -187,7 +188,7 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 						
 			//distance check from exact roots;
 			for(int kx=0 ; kx < d_loc; kx++){
-				if((z_re-root_exact[kx][0])*(z_re-root_exact[kx][0]) + (z_im-root_exact[kx][1])*(z_im-root_exact[kx][1]) < DIST*DIST){
+				if((z_re-roots_exact[kx][0])*(z_re-roots_exact[kx][0]) + (z_im-roots_exact[kx][1])*(z_im-roots_exact[kx][1]) < DIST*DIST){
 					True = 1;
 					which_root=kx;
 					break;
@@ -198,16 +199,16 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 		}
 
 
-	        result[index][jx]=which_root;
-		iterations[index][jx] = iterations_loc;
+	        result[Index][jx]=which_root;
+		iterations[Index][jx] = iterations_loc;
 	}
  	    pthread_mutex_lock(&mutex_write); 
-		rows_done[index] = 1;
-		index++
-		pthread_mutex_unlock(&mutex_write);
+		rows_done[Index] = 1;
+		Index++;
+	    pthread_mutex_unlock(&mutex_write);
 	     
      }
-     printf("-------------DONE WITH THREAD-------------\n");
+    printf("-------------DONE WITH THREAD-------------\n");
 	return NULL;
 }
 
@@ -402,10 +403,8 @@ int main(int argc, char * argv[] ){
      float theta = i*2*M_PI/POWER;
      roots_exact[i][0] = cos(theta);
      roots_exact[i][1] = sin(theta);
-     //printf("woop %f %f\n", roots_exact[i][0],roots_exact[i][1]);
    }
-   
-   //   printf("initial x %f, initital y %f \n", initial[size-1][2*(size-1)+1],initial[size-1][2*(size-1)+1]);
+
    // printf("----------------After memory allocation---------------\n");
    int ret;
    pthread_t threads[THREADS+1]; // create one extra for writing to file
@@ -413,7 +412,6 @@ int main(int argc, char * argv[] ){
    pthread_mutex_init(&mutex_write, NULL); // mutex for accessing the rows_done array
  
 
-// precalculate the roots to the chosen polynomial
     printf("-----------Start writing thread----------\n");
 // do writing thread
     
@@ -423,7 +421,7 @@ int main(int argc, char * argv[] ){
     //arg.rows_done=rows_done;
     //arg.result=result;
     //arg.iterations=iterations;
-    if (ret = pthread_create(threads+thread_count, NULL, writeppm, (void*) &arg)) {
+    if (ret = pthread_create(threads+thread_count, NULL, writeppm, NULL)) {
     printf("Error creating thread: %\n", ret);
     exit(1);
   }
@@ -438,12 +436,12 @@ int main(int argc, char * argv[] ){
    //index[i]=numrows_first+(i-1)*numrows;
    // }
  
-	for(int tx = 0; tx < thread_count; tx++){
-		index = tx;
-	if (ret = pthread_create(threads + tx, NULL, threaded_newton, NULL {
+	for(int tx = 0; tx < THREADS; tx++){
+		Index = tx;
+		if (ret = pthread_create(threads + tx, NULL, threaded_newton, (void*)&Index)) {
 		printf("Error creating thread: %\n", ret);
 		exit(1);
-	}
+		  }
 	}
  
  /*int numrows_first = numrows+numrest;
@@ -508,7 +506,7 @@ int main(int argc, char * argv[] ){
   free(roots_exact);
   free(all_roots_exact);
   free(rows_done);
-  free(index);
+  //  free(index);
   
   return 0;  
 }
