@@ -18,7 +18,8 @@ In the main function we start by calling the argument parsing function which ass
 * initial - used to point to the initial values that we want our Newton function to start at. 
 * iterations - used to point to the memory where we store the number of iterations for each point, this is an integer array since it should suffice with a few million iterations as a natural maximum.
 *  result - points to where we store an integer which corresponds to which root our newton method converged to
-* rows_done - an ar
+* rows_done - an array where we keep track of which rows the program finished calculating. initialised to 0.
+* roots_exact - the array where we store the complex roots for each 
 
 ###  parse_args
 This function is in charge of parsing the command line arguments. It starts by using strncmp to see of the first two characters of the first argument matches any of our supported flags (-t or -l) and uses strtol to parse the number after the flag. It prints an error message to stdout and exits if if there is either something that cannot be parsed after the flag or if the flag/argument is invalid/unknown.
@@ -85,7 +86,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEzMzc2Njc1NzksOTg1MzU0MzgsLTQ5Nz
-c5MDE1NCwxMjE3NjY2Mzg1LC05OTAyNTkxMDgsLTE2MTQ4NTg3
-NDMsNDEzMjQ2NCwyMDk3NzgxMDI0XX0=
+eyJoaXN0b3J5IjpbLTMxMDgyMTg4Myw5ODUzNTQzOCwtNDk3Nz
+kwMTU0LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0
+Myw0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
 -->
