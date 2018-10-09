@@ -1,8 +1,8 @@
 # Assignment 2 : Threads
 
-In this assignment we have implemented parallellism with POSIX threads. This was done in a program which takes the square of sidelength 2, centered at the origin, and divides it up into L pieces. For these pieces the program then starts threads to compute which root Newton's method would converge to and how many iterations it took to get there. 
+In this assignment we have implemented parallellism with POSIX threads. This was done in a program which takes the square of sidelength 2, centered at the origin, and divides it up into L points. For these pieces the program then starts threads to compute which root Newton's method would converge to in each point and how many iterations it took to get there. 
 
-This information is then stored in a global array and simultaneously written to a .ppm file by a separate thread. This thread only writes the information to file and has no part in the computations mentioned above. 
+This information is then stored in a global array and simultaneously written to a .ppm file by a separate thread. This thread only writes the information to file and takes no part in the computations mentioned above. 
 
 Additionally,  we use the following include files: 
 * pthread - for POSIX threads mutices and such
@@ -12,7 +12,7 @@ Additionally,  we use the following include files:
 * string - for comparing strings
 * time - for our own benchmarking
  We will go through and explain the different parts of the program.
-// TODO: -explain more what the program does and how it is related to the command line arguments.
+// TODO: -maybe explain more what the program does and how it is related to the command line arguments, maybe is.
 -maybe talk more about the constants that we have hardcoded and other global stuff
 ### 	Main
 In the main function we start by calling the argument parsing function, parse_args, which assigns the command line arguments to global variables. We then use these to allocate some memory which we will use some (previously defined) global arrays to point to. These global arrays are:
@@ -108,8 +108,8 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTM4MDI3MzY3MSwyMDk5MzEwNjA1LDEwMj
-E5OTk2MzksOTg1MzU0MzgsLTQ5Nzc5MDE1NCwxMjE3NjY2Mzg1
-LC05OTAyNTkxMDgsLTE2MTQ4NTg3NDMsNDEzMjQ2NCwyMDk3Nz
-gxMDI0XX0=
+eyJoaXN0b3J5IjpbMTI5NzI2NjM3OSwtMzgwMjczNjcxLDIwOT
+kzMTA2MDUsMTAyMTk5OTYzOSw5ODUzNTQzOCwtNDk3NzkwMTU0
+LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0Myw0MT
+MyNDY0LDIwOTc3ODEwMjRdfQ==
 -->
