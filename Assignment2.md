@@ -1,6 +1,6 @@
 # Assignment 2 : Threads
 
-In this assignment we have implemented parallellism with POSIX threads. This was done in a program which takes the square of sidelength 2, centered at the origin, and divides it up into 
+In this assignment we have implemented parallellism with POSIX threads. This was done in a program which takes the square of sidelength 2, centered at the origin, and divides it up into L pieces. For these pieces the program then starts threads to compute which root Newton's method would converge to and how many iter
 
 
 
@@ -59,7 +59,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTI4NDI3NDg0MCwxMjE3NjY2Mzg1LC05OT
+eyJoaXN0b3J5IjpbMTYzNTcwNzA5MiwxMjE3NjY2Mzg1LC05OT
 AyNTkxMDgsLTE2MTQ4NTg3NDMsNDEzMjQ2NCwyMDk3NzgxMDI0
 XX0=
 -->
