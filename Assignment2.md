@@ -40,7 +40,7 @@ Finally it takes the arguments that it has parsed and assigns them to the global
 
 
 
-# Additional stu
+# Additional stuff
 In addition to the source code for your solution, you have to write a report in (kramdoc compatible) markdown that explains your solution, with focus on the program layout and performance characteristics. You shall also answers all questions posed in context of the assignment, if there is any.
 
 # Useful syntax help
@@ -95,7 +95,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEzNDQxMTQyMjEsOTg1MzU0MzgsLTQ5Nz
-c5MDE1NCwxMjE3NjY2Mzg1LC05OTAyNTkxMDgsLTE2MTQ4NTg3
-NDMsNDEzMjQ2NCwyMDk3NzgxMDI0XX0=
+eyJoaXN0b3J5IjpbNTQyOTY1Mzk1LDk4NTM1NDM4LC00OTc3OT
+AxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4LC0xNjE0ODU4NzQz
+LDQxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
