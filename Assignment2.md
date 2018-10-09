@@ -14,7 +14,7 @@ Additionally,  we use the following include files:
  We will go through and explain the different parts of the program.
 
 ### 	Main
-In the main function we start by calling the argument parsing function which assigns the command line arguments to global variables. 
+In the main function we start by calling the argument parsing function which assigns the command line arguments to global variables. We then use these to 
 
 ###  parse_args
 This function is in charge of parsing the command line arguments. It starts by using strncmp to see of the first two characters of the first argument matches any of our supported flags (-t or -l) and uses strtol to parse the number after the flag. It prints an error message to stdout and exits if if there is either something that cannot be parsed after the flag or if the flag/argument is invalid/unknown.
@@ -81,7 +81,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNzk3MDY5NzIxLDk4NTM1NDM4LC00OTc3OT
+eyJoaXN0b3J5IjpbMzU5NTUyOTgzLDk4NTM1NDM4LC00OTc3OT
 AxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4LC0xNjE0ODU4NzQz
 LDQxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
