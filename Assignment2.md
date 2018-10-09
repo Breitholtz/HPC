@@ -37,7 +37,11 @@ Finally it takes the arguments that it has parsed and assigns them to the global
 This is the function which is used to calculate the convergence of every point in our picture. 
 
 ### writeppm
-This function is used to take the data that is computed by threaded_newton and write it to a ppm
+This function is used to take the data that is computed by threaded_newton and write it to a .ppm file. 
+
+It first creates two character arrays on the stack which we will store our filenames in.  
+
+
 
 // IDEAS: to check our programs performance characteristic we can time every function for different inputs and see how they behave and how long it appears to take them to process. Maybe easier with a profiler...
 # Additional stuff
@@ -95,7 +99,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEwODI2NDI3NDgsMTAyMTk5OTYzOSw5OD
-UzNTQzOCwtNDk3NzkwMTU0LDEyMTc2NjYzODUsLTk5MDI1OTEw
-OCwtMTYxNDg1ODc0Myw0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
+eyJoaXN0b3J5IjpbMTQ1NzI4NzE1OCwxMDIxOTk5NjM5LDk4NT
+M1NDM4LC00OTc3OTAxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4
+LC0xNjE0ODU4NzQzLDQxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
