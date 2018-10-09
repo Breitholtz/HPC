@@ -1,11 +1,13 @@
 # Assignment 2 : Threads
 
-In this assignment we have implemented parallellism with POSIX threads. This was done in a program which takes the square of sidelength 2, centered at the origin, and divides it up into a given amount of points. For these pieces the program then starts threads to compute which root Newton's method would converge to in each point and how many iterations it took to get there. This is done for a polynomial $x^d-1$ wh
+In this assignment we have implemented parallellism with POSIX threads. This was done in a program which takes the square of sidelength 2, centered at the origin, and divides it up into a given amount of points. For these pieces the program then starts threads to compute which root Newton's method would converge to in each point and how many iterations it took to get there. This is done for a polynomial $x^d-1$ where d is given.
 
 This information is then stored in a global array and simultaneously written to a .ppm file by a separate thread. This thread only writes the information to file and takes no part in the computations mentioned above. 
 
 The program also takes command line arguments which govern the following properties:
-1. the
+1. The exponent, d, for the polynomial
+2. How many points L the square should be partitioned into.
+3. How many threads T
 
 Additionally,  we use the following include files: 
 * pthread - for POSIX threads mutices and such
@@ -112,8 +114,8 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE2MDI3MjMyNywtNjQ3MDQ2NDc3LC0zOD
-AyNzM2NzEsMjA5OTMxMDYwNSwxMDIxOTk5NjM5LDk4NTM1NDM4
-LC00OTc3OTAxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4LC0xNj
-E0ODU4NzQzLDQxMzI0NjQsMjA5Nzc4MTAyNF19
+eyJoaXN0b3J5IjpbNjQyMjY5MjAxLC02NDcwNDY0NzcsLTM4MD
+I3MzY3MSwyMDk5MzEwNjA1LDEwMjE5OTk2MzksOTg1MzU0Mzgs
+LTQ5Nzc5MDE1NCwxMjE3NjY2Mzg1LC05OTAyNTkxMDgsLTE2MT
+Q4NTg3NDMsNDEzMjQ2NCwyMDk3NzgxMDI0XX0=
 -->
