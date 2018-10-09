@@ -12,7 +12,7 @@ Additionally,  we use the following include files:
 * string - for comparing strings
 * time - for our own benchmarking
  We will go through and explain the different parts of the program.
-// TODO: explain more what the program does and how it is related to the command line arguments.
+// TODO: -explain more what the program does and how it is related to the command line arguments.
 ### 	Main
 In the main function we start by calling the argument parsing function, parse_args, which assigns the command line arguments to global variables. We then use these to allocate some memory which we will use some (previously defined) global arrays to point to. These global arrays are:
 * initial - used to point to the initial values that we want our Newton function to start at. 
@@ -105,7 +105,8 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjA5OTMxMDYwNSwxMDIxOTk5NjM5LDk4NT
-M1NDM4LC00OTc3OTAxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4
-LC0xNjE0ODU4NzQzLDQxMzI0NjQsMjA5Nzc4MTAyNF19
+eyJoaXN0b3J5IjpbLTE0MzkxODUyNzgsMjA5OTMxMDYwNSwxMD
+IxOTk5NjM5LDk4NTM1NDM4LC00OTc3OTAxNTQsMTIxNzY2NjM4
+NSwtOTkwMjU5MTA4LC0xNjE0ODU4NzQzLDQxMzI0NjQsMjA5Nz
+c4MTAyNF19
 -->
