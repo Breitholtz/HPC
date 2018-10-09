@@ -37,9 +37,9 @@ Finally it takes the arguments that it has parsed and assigns them to the global
 This is the function which is used to calculate the convergence of every point in our picture. 
 
 ### writeppm
-This function is used to take the data that is computed by threaded_newton and write it to a .ppm file. 
+This function is used to take the data that is computed by threaded_newton and write it to two .ppm files. One for the iterations and one for which root the function converged to for each point. 
 
-It first creates two character arrays on the stack which we will store our filenames in.  
+It first creates two character arrays on the stack which we will store our filenames in. Then sprintf is employed to create the filenames. Then the two files a   
 
 
 
@@ -99,7 +99,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTQ1NzI4NzE1OCwxMDIxOTk5NjM5LDk4NT
+eyJoaXN0b3J5IjpbMTEzMDU5OTUwNCwxMDIxOTk5NjM5LDk4NT
 M1NDM4LC00OTc3OTAxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4
 LC0xNjE0ODU4NzQzLDQxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
