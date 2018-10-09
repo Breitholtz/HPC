@@ -110,7 +110,7 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
           
 	int * I=(int *)args;
 	int Row=*I;
-        
+        //printf("------------ROW-------- : %d\n", Row);
 	float z_re;
 	float z_im;
 	float arg_z;
@@ -119,15 +119,16 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 	int True;
 
 	int iterations_loc;
-	int which_root = POWER;
+	int which_root;
 	
 	
-    while(Row < SIZE){
+	while(Row < SIZE){
 	for(int jx = 0; jx < SIZE; jx++){ 
 		True = 0;
 		iterations_loc=0; //keep track of iterations
 		z_re=initial[Row][2*jx];
 		z_im=initial[Row][2*jx+1];
+		which_root =POWER;
 		//Newtons method
 		while((True==0) && ( fabs(z_re) < MAX) && (fabs(z_im) < MAX)&&(iterations_loc<MAX_ITER)){
 			arg_z = atan2(z_im, z_re);
@@ -158,19 +159,22 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 		iterations[Row][jx] = iterations_loc;
 		// set colours here?
 	}
- 	    pthread_mutex_lock(&mutex_write); 
+ 	    pthread_mutex_lock(&mutex_write);
+	    if(Row<SIZE){
 		rows_done[Row] = 1;
+		//       	printf("rows_done %d\n",rows_done[Row]);
+	    }
 		Row=Index;
 		Index++;
+		//printf("index: %d Row %d \n",Index, Row);
 	    pthread_mutex_unlock(&mutex_write);
-	     
-     }
-    //    printf("-------------DONE WITH THREAD-------------\n");
+    }
+        printf("-------------DONE WITH THREAD-------------\n");
 	return NULL;
 }
 
 void * writeppm(void * args) { // void * since we want it to work with threads
-  
+    
   // write the information into the desired .ppm format and output the file, call the one with colours corresponding to roots newton_attractor_xd.ppm and the other newton_convergence_xd.ppm
   // where d in _xd.pmm is the power of x
 	// create filenames
@@ -187,13 +191,19 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 
 	printf("------------WRITING-------------\n");
 	size_t ix=0;
+	
 	while(ix < SIZE){
+	  //  printf("rowsdone %d\n",rows_done[ix]);
+	  //      pthread_mutex_lock(&mutex_write);
 		if(rows_done[ix] != 0){
+		  //	  	    printf("ix: %d\n",ix);
+
 			//write to file
 		  for (size_t jx=0;jx<SIZE;jx++){
 		  fprintf(fp, "%d %d %d ", result[ix][jx]*20, 0, 0); // "hardcoded" colors for different results
                   fprintf(fp2, "%d %d %d ", iterations[ix][jx], iterations[ix][jx], iterations[ix][jx]);
 		  }
+		  //   pthread_mutex_unlock(&mutex_write);
 		  ix++;
 		}
 		// continue waiting for next row
@@ -209,7 +219,7 @@ void * writeppm(void * args) { // void * since we want it to work with threads
       //fwrite(string)
      printf("-----------OK - file %s and %s saved\n------------", str,str2);
      
-	
+  
   return NULL;
 }
 
@@ -296,10 +306,11 @@ int main(int argc, char * argv[] ){
     //    printf("power: %d",power);
     // printf("-----------Start Newton threads----------\n");
  Index=THREADS;
- int Row; // starting row for each of the threads
+ int  * Row=malloc(sizeof(int)*THREADS); // starting row for each of the threads
+ 
 	for(int tx = 0; tx < THREADS; tx++){
-	  Row = tx;
-		if (ret = pthread_create(threads + tx, NULL, threaded_newton, (void*)&Row)) {
+	  Row[tx] = tx;
+		if (ret = pthread_create(threads + tx, NULL, threaded_newton, (void*)&Row[tx])) {
 		printf("Error creating thread: %\n", ret);
 		exit(1);
 		  }
@@ -328,7 +339,7 @@ int main(int argc, char * argv[] ){
   free(roots_exact);
   free(all_roots_exact);
   free(rows_done);
-
+  free(Row);
   timespec_get(&ts, TIME_UTC);
   printf("secs: %ld nsec: %ld \n",(ts.tv_sec-sec1), ts.tv_nsec-nsec1);
   return 0;  
