@@ -4,6 +4,8 @@ In this assignment we have implemented parallellism with POSIX threads. This was
 
 This information is then stored in a global array and simultaneously written to a .ppm file by a separate thread. This thread only writes the information to file and takes no part in the computations mentioned above. 
 
+The program also takes command line arguments which g
+
 Additionally,  we use the following include files: 
 * pthread - for POSIX threads mutices and such
 * math - essentially only to use fabs()
@@ -109,8 +111,8 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTY0NzA0NjQ3NywtMzgwMjczNjcxLDIwOT
-kzMTA2MDUsMTAyMTk5OTYzOSw5ODUzNTQzOCwtNDk3NzkwMTU0
-LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0Myw0MT
-MyNDY0LDIwOTc3ODEwMjRdfQ==
+eyJoaXN0b3J5IjpbLTI0Nzk1ODU5OCwtNjQ3MDQ2NDc3LC0zOD
+AyNzM2NzEsMjA5OTMxMDYwNSwxMDIxOTk5NjM5LDk4NTM1NDM4
+LC00OTc3OTAxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4LC0xNj
+E0ODU4NzQzLDQxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
