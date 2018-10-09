@@ -12,7 +12,7 @@ Additionally,  we use the following include files:
 * string - for comparing strings
 * time - for our own benchmarking
  We will go through and explain the different parts of the program.
-
+// TODO: explain more what the 
 ### 	Main
 In the main function we start by calling the argument parsing function, parse_args, which assigns the command line arguments to global variables. We then use these to allocate some memory which we will use some (previously defined) global arrays to point to. These global arrays are:
 * initial - used to point to the initial values that we want our Newton function to start at. 
@@ -34,7 +34,7 @@ It repeats this for the second argument and then parses the third argument direc
 Finally it takes the arguments that it has parsed and assigns them to the global variables: POWER, SIZE and THREADS.
 
 ### threaded_newton
-This is the function which is used to calculate the convergence of every point 
+This is the function which is used to calculate the convergence of every point in our picture. 
 
 ### writeppm
 
@@ -95,7 +95,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTAyMTk5OTYzOSw5ODUzNTQzOCwtNDk3Nz
-kwMTU0LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0
-Myw0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
+eyJoaXN0b3J5IjpbMTQzMTYzNzAwMywxMDIxOTk5NjM5LDk4NT
+M1NDM4LC00OTc3OTAxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4
+LC0xNjE0ODU4NzQzLDQxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
