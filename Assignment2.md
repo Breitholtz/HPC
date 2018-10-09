@@ -5,9 +5,9 @@ In this assignment we have implemented parallellism with POSIX threads. This was
 This information is then stored in a global array and simultaneously written to a .ppm file by a separate thread. This thread only writes the information to file and takes no part in the computations mentioned above. 
 
 The program also takes command line arguments which govern the following properties:
-1. The exponent, d, for the polynomial
-2. How many points L the square should be partitioned into.
-3. How many threads T
+1. The exponent, d, for the polynomial.
+2. How many points, L, the square should be partitioned into.
+3. How many threads, T, that should be used for the newton computation.
 
 Additionally,  we use the following include files: 
 * pthread - for POSIX threads mutices and such
@@ -114,8 +114,8 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNjQyMjY5MjAxLC02NDcwNDY0NzcsLTM4MD
-I3MzY3MSwyMDk5MzEwNjA1LDEwMjE5OTk2MzksOTg1MzU0Mzgs
-LTQ5Nzc5MDE1NCwxMjE3NjY2Mzg1LC05OTAyNTkxMDgsLTE2MT
-Q4NTg3NDMsNDEzMjQ2NCwyMDk3NzgxMDI0XX0=
+eyJoaXN0b3J5IjpbLTEwODEyNTMxNzcsLTY0NzA0NjQ3NywtMz
+gwMjczNjcxLDIwOTkzMTA2MDUsMTAyMTk5OTYzOSw5ODUzNTQz
+OCwtNDk3NzkwMTU0LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMT
+YxNDg1ODc0Myw0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
 -->
