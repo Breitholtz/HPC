@@ -4,12 +4,13 @@ In this assignment we have implemented parallellism with POSIX threads. This was
 
 This information is then stored in a global array and simultaneously written to a .ppm file by a separate thread. This thread only writes the information to file and has no part in the computations mentioned above. 
 
-We will go through and explain the different parts of the program.
+Additionally,  us the includWe will go through and explain the different parts of the program.
 
 ### 	Main
 In the main function we start by calling the argument parsing function which assigns the command line arguments to global variables. 
 
-###  parse_ars
+###  parse_args
+This function is in charge of parsing the command line arguments and 
 
 
 
@@ -67,7 +68,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTM5MzY3NTUxOCwtNDk3NzkwMTU0LDEyMT
+eyJoaXN0b3J5IjpbMTkyNTg4OTYyNiwtNDk3NzkwMTU0LDEyMT
 c2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0Myw0MTMyNDY0
 LDIwOTc3ODEwMjRdfQ==
 -->
