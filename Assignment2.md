@@ -2,7 +2,9 @@
 
 In this assignment we have implemented parallellism with POSIX threads. This was done in a program which takes the square of sidelength 2, centered at the origin, and divides it up into L pieces. For these pieces the program then starts threads to compute which root Newton's method would converge to and how many iterations it took to get there. 
 
-This information is then stored in a global array and simultaneously written to a .ppm file by a separate thread which handles the 
+This information is then stored in a global array and simultaneously written to a .ppm file by a separate thread. This thread only writes the information to file and has no part in the computations mentioned above. 
+
+## 	
 
 
 
@@ -61,7 +63,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTI2MDgyOTQ2NCwxMjE3NjY2Mzg1LC05OT
+eyJoaXN0b3J5IjpbLTQ5Nzc5MDE1NCwxMjE3NjY2Mzg1LC05OT
 AyNTkxMDgsLTE2MTQ4NTg3NDMsNDEzMjQ2NCwyMDk3NzgxMDI0
 XX0=
 -->
