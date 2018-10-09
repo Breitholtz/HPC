@@ -1,5 +1,10 @@
 # Assignment 2 : Threads
 
+In this assignment we have implemented parallellism with POSIX threads 
+
+
+
+
 In addition to the source code for your solution, you have to write a report in (kramdoc compatible) markdown that explains your solution, with focus on the program layout and performance characteristics. You shall also answers all questions posed in context of the assignment, if there is any.
 
 # Useful syntax help
@@ -54,6 +59,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTIxNzY2NjM4NSwtOTkwMjU5MTA4LC0xNj
-E0ODU4NzQzLDQxMzI0NjQsMjA5Nzc4MTAyNF19
+eyJoaXN0b3J5IjpbNTMyMDMyNTgxLDEyMTc2NjYzODUsLTk5MD
+I1OTEwOCwtMTYxNDg1ODc0Myw0MTMyNDY0LDIwOTc3ODEwMjRd
+fQ==
 -->
