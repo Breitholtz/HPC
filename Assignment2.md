@@ -34,7 +34,7 @@ It repeats this for the second argument and then parses the third argument direc
 Finally it takes the arguments that it has parsed and assigns them to the global variables: POWER, SIZE and THREADS.
 
 ### threaded_newton
-This is the function which is used to calculate the  
+This is the function which is used to calculate the convergence of every point 
 
 ### writeppm
 
@@ -95,7 +95,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTA2OTYzNzc2Niw5ODUzNTQzOCwtNDk3Nz
+eyJoaXN0b3J5IjpbMTAyMTk5OTYzOSw5ODUzNTQzOCwtNDk3Nz
 kwMTU0LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0
 Myw0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
 -->
