@@ -43,9 +43,7 @@ It first creates two character arrays on the stack which we will store our filen
 
 We use fprintf to easily write the header to both files, then we proceed to the main writing stage. It consists of a while loop which runs until an index $ix$ is equal to SIZE, i.e until we have fully written all the rows to the files. Inside we have a an if-statement which checks if row $ix$ is done. 
 
-If the row is done
-
-After the    
+If the row is done then we proceed to write it to the files with..... then we increment $ix$ and continue waiting until the next row is done. This repeats until the writing is finished. We the
 
 
 
@@ -105,7 +103,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTg1NjMyNjM4NiwxMDIxOTk5NjM5LDk4NT
+eyJoaXN0b3J5IjpbLTEwMjE2MjY4OCwxMDIxOTk5NjM5LDk4NT
 M1NDM4LC00OTc3OTAxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4
 LC0xNjE0ODU4NzQzLDQxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
