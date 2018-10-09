@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <math.h>      
-
+#include <time.h>
 #define DIST 0.001
 #define MAX 10000000000
 pthread_mutex_t mutex_write; 
@@ -18,7 +18,7 @@ float ** roots_exact;
 int * rows_done;
 int ** result;
 int Index;
-
+int MAX_ITER =1000;
 
 void parse_args(char * args[]){
   
@@ -40,8 +40,8 @@ void parse_args(char * args[]){
      printf("Invalid argument '%ld' or Junk '%s' at end of argument 1!\n",res1,rest1);
      exit(1);
    }else{
-   printf(" thread argument is %d\n",(int)res1);
-   }
+     //   printf(" thread argument is %d\n",(int)res1);
+  }
   }else if(strncmp(args[1], "-l",2)==0){
   char  T[strlen(args[1])-1];
    strncpy(T,args[1]+2,strlen(args[1])-2);
@@ -51,7 +51,7 @@ void parse_args(char * args[]){
      printf("Invalid argument '%ld' or Junk '%s' at end of argument 2!\n",res2,rest2);
      exit(1);
    }else{
-   printf(" size argument is %d\n",(int)res2);
+     //printf(" size argument is %d\n",(int)res2);
    }  
   }else{
   printf("Unknown first argument!!!\n");
@@ -71,7 +71,7 @@ void parse_args(char * args[]){
      printf("Invalid argument '%ld' or Junk '%s' at end of argument 2!\n",res2,rest2);
      exit(1);
    }else{
-   printf(" length argument is %d\n",(int)res2);
+     // printf(" length argument is %d\n",(int)res2);
    }
  }else if(strncmp(args[2], "-t",2)==0){
  char  T[strlen(args[2])-1];
@@ -82,7 +82,7 @@ void parse_args(char * args[]){
      printf("Invalid argument '%ld' or Junk '%s' at end of argument 1!\n",res1,rest1);
      exit(1);
    }else{
-   printf(" thread argument is %d\n",(int)res1);
+     //printf(" thread argument is %d\n",(int)res1);
    }
  }else{
   printf("Unknown second argument!!!\n");
@@ -95,7 +95,7 @@ void parse_args(char * args[]){
      printf("Invalid argument '%ld' or Junk '%s' at end of argument 3!\n",res3,rest3);
      exit(1);
    }else{
-   printf(" exponent is %d\n",(int)res3);
+     // printf(" exponent is %d\n",(int)res3);
    }
   
 
@@ -106,22 +106,9 @@ void parse_args(char * args[]){
 }
 
 void * threaded_newton(void * args){  // void * since we want it to work with threads
-  
-	//access args from struct
-  //    struct newton_arguments *arg = args;
-	
-    //float ** initial = initial; //initial value pointer  
-    //int ** iterations = iterations; // iteration pointer
-	//*arg->power; //polynomial degree
-	//int n_loc = arg->num_rows; //numrows_first ; how many rows this thread is handling
-	//	float ** root_exact = roots_exact;
-	//*arg->rowsize; // how long each row is
-	//int rownumber = arg->index; // index of the first row in the memory block so we know where to put it after computation
-	//	int * rows_done = rows_done;  // pointer to keep track of calculated roots
-	//int ** result = arg->result;
-        
+          
 	int * I=(int *)args;
-	Index=*I;
+	int Row=*I;
         
 	float z_re;
 	float z_im;
@@ -134,18 +121,14 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 	int which_root = POWER;
 	
 	
-    while(Index < SIZE){
-      printf("index: %d\n",Index);
+    while(Row < SIZE){
 	for(int jx = 0; jx < SIZE; jx++){ 
 		True = 0;
 		iterations_loc=0; //keep track of iterations
-		//which_root=0;
-		printf("Initial %f %f\n",initial[Index][2*jx],initial[Index][2*jx+1]);
-		z_re=initial[Index][2*jx];
-		z_im=initial[Index][2*jx+1];
+		z_re=initial[Row][2*jx];
+		z_im=initial[Row][2*jx+1];
 		//Newtons method
-		//printf("index: %d\n",Index);
-		while((True==0) && ( abs(z_re) < MAX) && (abs(z_im) < MAX)){
+		while((True==0) && ( fabs(z_re) < MAX) && (fabs(z_im) < MAX)&&(iterations_loc<MAX_ITER)){
 			arg_z = atan2(z_im, z_re);
 			abs_z = z_re* z_re + z_im* z_im;
 			abs_d=1;
@@ -160,7 +143,6 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 			z_im = (z_im*(POWER -1) +1/abs_d*sin(arg_z*(1-POWER)))/ POWER;
 						
 		       
-						
 			//distance check from exact roots;
 			for(int kx=0 ; kx < POWER; kx++){
 				if((z_re-roots_exact[kx][0])*(z_re-roots_exact[kx][0]) + (z_im-roots_exact[kx][1])*(z_im-roots_exact[kx][1]) < DIST*DIST){
@@ -169,22 +151,20 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 					break;
 				}
 			}
-			//printf("iteration continues\n");
 			iterations_loc++;
 		}
-	       
-		//  save result
-		result[Index][jx]=which_root;
-		iterations[Index][jx] = iterations_loc;
-
+	       	result[Row][jx]=which_root;
+		iterations[Row][jx] = iterations_loc;
+		// set colours here?
 	}
  	    pthread_mutex_lock(&mutex_write); 
-		rows_done[Index] = 1;
+		rows_done[Row] = 1;
+		Row=Index;
 		Index++;
 	    pthread_mutex_unlock(&mutex_write);
 	     
      }
-    printf("-------------DONE WITH THREAD-------------\n");
+    //    printf("-------------DONE WITH THREAD-------------\n");
 	return NULL;
 }
 
@@ -192,128 +172,46 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 
   // write the information into the desired .ppm format and output the file, call the one with colours corresponding to roots newton_attractor_xd.ppm and the other newton_convergence_xd.ppm
   // where d in _xd.pmm is the power of x
-  /*
-  struct write_arguments *arguments =args;
-
+  char * colours[10];     // hardcoded colors for different results, on the stack
+  char * grayscale;     // 
+  for (size_t i=0;i<9;i++){
+    sprintf(colours[i], "%d 0 0", 20*(9-i));
+	
+  }
   	
-  struct write_arguments *arguments =args;
-  int * power= arguments->power;
-  int * size = arguments->size;
-  int * rows_done=arguments->rows_done;
-  int ** iterations= arguments->iterations;
-  int ** result = arguments->result;
-  
-  const int SIZE =*size;
-  int rows_written[SIZE]; // initialise??? 
-   
-   
-   //necessary?
-   u_char * iterations_mat=(u_char *)malloc(SIZE*SIZE*3);
-   u_char * result_mat= (u_char *)malloc(SIZE*SIZE*3);
-   u_char ** result_loc=(u_char **)malloc(SIZE*sizeof(u_char *));
-   u_char ** iterations_loc=(u_char **)malloc(SIZE*sizeof(u_char *));
-	
-	//results and rows_done should be global according to 
-	char * rows_done_loc = (char*)calloc(SIZE, sizeof(char)); 
-	
-	int ix=0;
-	
 	// create filenames
 	char str[26];
 	char str2[26];
-	sprintf(str, "newton_attractors_x%i.ppm", *power);
-	sprintf(str2, "newton_convergence_x%i.ppm", *power);
+	sprintf(str, "newton_attractors_x%i.ppm", POWER);
+	sprintf(str2, "newton_convergence_x%i.ppm", POWER);
 	FILE * fp;
 	FILE * fp2;
-	
-	while(ix < size){
-		if(row_done[ix] != 0){
-			
+	fprintf(fp, "P3\n %d %d\n %d", SIZE,SIZE,255); // colour header 
+	fprintf(fp2, "P2\n %d %d\n %d", SIZE,SIZE,MAX_ITER); // grayscale header
+        /*
+	size_t ix=0;
+	while(ix < SIZE){
+		if(rows_done[ix] != 0){
 			//write to file
-			
-			xi++
+		  for (size_t i=0;i<SIZE;i++){
+		  fprintf(fp, "%d %d %d ", COLOR_VALUE0, COLOR_VALUE1, COLOR_VALUE2);
+                  fprintf(fp2, "%d %d %d ", GRAY_VALUE, GRAY_VALUE, GRAY_VALUE);
+		  }
+			ix++
 		}
+		// continue waiting for next row
 	}
+	*/
+	fclose(fp);
+        fclose(fp2);
    
-   
-   /* for(size_t ix=0, jx=0; ix<SIZE;ix++, jx+=SIZE){
-     result_loc[ix]=result_mat + 3*jx;
-     iterations_loc[ix]=iterations_mat + 3*jx;
-   }
-   int current_index;
-   printf("----------Starting looping in writeppm------------\n");
-   while(sum_array<SIZE){
-    sum_array=0;
-    // pause to let threads finish rows?
-    //pthread_mutex_lock(&mutex_write);
-    for(size_t index=0;index<SIZE;index++){
-      sum_array+=rows_written[index];
-      if(rows_done[index] && !rows_written[index]){
-	// if found entry:  note that it is done write that row to file
-	rows_written[index]=1;
-	current_index=index;
-	break;
-      }
-    }    
-     //pthread_mutex_unlock(&mutex_write);
-  	 if(sum_array<1){
-	   continue;
-	 }
-	 if(sum_array==SIZE){
-	   break;
-	   }  
-               
-     // fill the data array, Mutex necessary???
-	 //printf("result; current_index: %d; rows_done %d; result: %d\n",current_index,rows_done[current_index],result[current_index][0]);
-	  //pthread_mutex_lock(&mutex_data);
-     for (size_t y = 0; y < SIZE; y++) { // what do we do here?
-       for (size_t x=0;x<3;x++){
-	 // printf("result[current_index][y]:%d\n",result[current_index][y]);
-	 result_loc[current_index][3*y+x] = (u_char) result[current_index][y];
-	 iterations_loc[current_index][3*y+x] = (u_char) iterations[current_index][y]; // bitwise operation & ok????
-       }
-     }    
-       //pthread_mutex_unlock(&mutex_data);
-   }
-        printf("-----------Got out of while loop and going to writing stage------------\n");
-
-
-   // create filenames
-	char str[26];
-	char str2[26];
-	sprintf(str, "newton_attractors_x%i.ppm", *power);
-	sprintf(str2, "newton_convergence_x%i.ppm", *power);
-	FILE * fp;
-	FILE * fp2;
-  
-	// write the whole data array to ppm file in one step
-     fp = fopen(str, "w");
-     fprintf(fp,"P3\n%d %d\n%d\n",size,size,255); // header
-
-     //write image data bytes to the file 
-      colors[]
-      grayscale[]
-      //if row j done
+     /*   
       for( size_t i=0; i<SIZE;i++){
       string=concat(string,colors[j][i])
 }
 fwrite(string)
-     fwrite(result_mat, 1,SIZE*SIZE*3, fp); // works??
-     fclose(fp);
-
-     
-     fp2 = fopen(str2, "w");
-     fprintf(fp2,"P3\n%d %d\n%d\n",size,size, 255); // header
-
-     //write image data bytes to the file 
-     fwrite(iterations_mat, 1,SIZE*SIZE*3, fp2); // works??
-     fclose(fp2);
-     
      printf("-----------OK - file %s and %s saved\n------------", str,str2);
-     free(result_loc);
-     free(result_mat);
-     free(iterations_loc);
-     free(iterations_mat);
+     
   */
   return NULL;
 }
@@ -322,9 +220,12 @@ fwrite(string)
 int main(int argc, char * argv[] ){
   // Grupp: hpcgp017
 
-    
+  struct timespec ts;
+  timespec_get(&ts, TIME_UTC);
+  long sec1=ts.tv_sec;
+  long nsec1=ts.tv_nsec;
   parse_args(argv); 
-  printf("Arguments: 1:%d 2:%d 3:%d\n",THREADS, SIZE, POWER); // remove later
+  //printf("Arguments: 1:%d 2:%d 3:%d\n",THREADS, SIZE, POWER); // remove later
 
   
 
@@ -336,7 +237,7 @@ int main(int argc, char * argv[] ){
 
    float * initial_mat =(float *)malloc(2*sizeof(float*)*SIZE*SIZE);
    initial = (float**) malloc(2*sizeof(float*)*SIZE); // initial values to newton
-   int * iterations_mat= (int *)malloc(sizeof(int*)*SIZE);
+   int * iterations_mat= (int *)malloc(sizeof(int*)*SIZE*SIZE);
    iterations = (int**) malloc(sizeof(int*) * SIZE);
    int * result_mat= (int *)malloc(sizeof(int*)*SIZE*SIZE);
    result = (int**) malloc(sizeof(int*) * SIZE);
@@ -388,37 +289,37 @@ int main(int argc, char * argv[] ){
    pthread_mutex_init(&mutex_write, NULL); // mutex for accessing the rows_done array
  
 
-    printf("-----------Start writing thread----------\n");
+   // printf("-----------Start writing thread----------\n");
 // do writing thread
     
     if (ret = pthread_create(threads+THREADS, NULL, writeppm, NULL)) {
-    printf("Error creating thread: %\n", ret);
+      // printf("Error creating thread: %\n", ret);
     exit(1);
   }
     //    printf("power: %d",power);
- printf("-----------Start Newton threads----------\n");
- 
+    // printf("-----------Start Newton threads----------\n");
+ Index=THREADS;
+ int Row; // starting row for each of the threads
 	for(int tx = 0; tx < THREADS; tx++){
-	  Index = tx;
-	  printf("address %d", &index);
-		if (ret = pthread_create(threads + tx, NULL, threaded_newton, (void*)&Index)) {
+	  Row = tx;
+		if (ret = pthread_create(threads + tx, NULL, threaded_newton, (void*)&Row)) {
 		printf("Error creating thread: %\n", ret);
 		exit(1);
 		  }
 	}
  
-  printf("---------------All threads created-----------\n");
+	//  printf("---------------All threads created-----------\n");
   // joining threads if done
     
-  for (size_t tx=0; tx < THREADS; ++tx) { // +1 for write thread
+  for (size_t tx=0; tx < THREADS; ++tx) { 
     if (ret = pthread_join(threads[tx], NULL)) {
       printf("Error joining thread: %d\n", ret);
       exit(1);
     }
   }
-  printf("-------------------JOINED THREADS-----------------\n");
+  //printf("-------------------JOINED THREADS-----------------\n");
    pthread_join(threads[THREADS],NULL);
-   printf("-----------JOINED WRITE THREAD---------------\n");
+   // printf("-----------JOINED WRITE THREAD---------------\n");
  
   pthread_mutex_destroy(&mutex_write);
   free(result);
@@ -430,6 +331,8 @@ int main(int argc, char * argv[] ){
   free(roots_exact);
   free(all_roots_exact);
   free(rows_done);
-  
+
+  timespec_get(&ts, TIME_UTC);
+  printf("secs: %ld nsec: %ld \n",(ts.tv_sec-sec1), ts.tv_nsec-nsec1);
   return 0;  
 }
