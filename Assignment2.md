@@ -23,7 +23,9 @@ In the main function we start by calling the argument parsing function, parse_ar
 
 This is followed by the computation of the roots for the given polynomial. For polynomials on the form $x^d-1$ we know that one root is always 1+0i and the rest are spaced by k/d around the rest of the unit circle in the complex plane. We may then for every value of d easily precompute the values of the roots.
 
-We then create the threads that we need and initialise a mutex which we will use later. We here also allocate a small array wit send in a 
+We then create the threads that we need and initialise a mutex which we will use later. We here also allocate a small array called Row which we use to send in the starting row for each respective thread.
+
+Finally we join all the threads and 
 ###  parse_args
 This function is in charge of parsing the command line arguments. It starts by using strncmp to see of the first two characters of the first argument matches any of our supported flags (-t or -l) and uses strtol to parse the number after the flag. It prints an error message to stdout and exits if if there is either something that cannot be parsed after the flag or if the flag/argument is invalid/unknown.
 
@@ -89,7 +91,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTg0MTc5OTk0Myw5ODUzNTQzOCwtNDk3Nz
-kwMTU0LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0
-Myw0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
+eyJoaXN0b3J5IjpbNzEwOTM0ODEwLDk4NTM1NDM4LC00OTc3OT
+AxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4LC0xNjE0ODU4NzQz
+LDQxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
