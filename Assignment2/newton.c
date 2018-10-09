@@ -110,7 +110,6 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
           
 	int * I=(int *)args;
 	int Row=*I;
-        //printf("------------ROW-------- : %d\n", Row);
 	float z_re;
 	float z_im;
 	float arg_z;
@@ -120,7 +119,6 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 
 	int iterations_loc;
 	int which_root;
-	
 	
 	while(Row < SIZE){
 	for(int jx = 0; jx < SIZE; jx++){ 
@@ -162,14 +160,12 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
  	    pthread_mutex_lock(&mutex_write);
 	    if(Row<SIZE){
 		rows_done[Row] = 1;
-		//       	printf("rows_done %d\n",rows_done[Row]);
 	    }
 		Row=Index;
 		Index++;
-		//printf("index: %d Row %d \n",Index, Row);
 	    pthread_mutex_unlock(&mutex_write);
     }
-        printf("-------------DONE WITH THREAD-------------\n");
+        //printf("-------------DONE WITH THREAD-------------\n");
 	return NULL;
 }
 
@@ -189,15 +185,12 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 	fprintf(fp, "P3\n %d %d\n %d\n", SIZE,SIZE,255); // colour header  
 	fprintf(fp2, "P3\n %d %d\n %d\n", SIZE,SIZE,MAX_ITER); // grayscale header
 
-	printf("------------WRITING-------------\n");
+	//printf("------------WRITING-------------\n");
 	size_t ix=0;
 	
 	while(ix < SIZE){
-	  //  printf("rowsdone %d\n",rows_done[ix]);
 	  //      pthread_mutex_lock(&mutex_write);
 		if(rows_done[ix] != 0){
-		  //	  	    printf("ix: %d\n",ix);
-
 			//write to file
 		  for (size_t jx=0;jx<SIZE;jx++){
 		  fprintf(fp, "%d %d %d ", result[ix][jx]*20, 0, 0); // "hardcoded" colors for different results
@@ -205,19 +198,14 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 		  }
 		  //   pthread_mutex_unlock(&mutex_write);
 		  ix++;
+		  continue;
 		}
 		// continue waiting for next row
 	}
        
        	fclose(fp);
         fclose(fp2);
-   
-       
-	//for( size_t i=0; i<SIZE;i++){
-	//string=concat(string,colors[j][i])
-	//	}
-      //fwrite(string)
-     printf("-----------OK - file %s and %s saved\n------------", str,str2);
+	//     printf("-----------OK - file %s and %s saved\n------------", str,str2);
      
   
   return NULL;
@@ -227,10 +215,10 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 int main(int argc, char * argv[] ){
   // Grupp: hpcgp017
 
-  struct timespec ts;
-  timespec_get(&ts, TIME_UTC);
-  long sec1=ts.tv_sec;
-  long nsec1=ts.tv_nsec;
+  //struct timespec ts;
+  //timespec_get(&ts, TIME_UTC);
+  //long sec1=ts.tv_sec;
+  //long nsec1=ts.tv_nsec;
   parse_args(argv); 
   //printf("Arguments: 1:%d 2:%d 3:%d\n",THREADS, SIZE, POWER); // remove later
 
@@ -249,9 +237,7 @@ int main(int argc, char * argv[] ){
    int * result_mat= (int *)malloc(sizeof(int*)*SIZE*SIZE);
    result = (int**) malloc(sizeof(int*) * SIZE);
    
-  
 
-   
    for ( size_t ix = 0, jx = 0; ix < SIZE; ++ix, jx+=SIZE ){ // setting pointers to every row in memory
        result[ix]= result_mat + jx;
        iterations[ix] = iterations_mat + jx;
@@ -263,7 +249,7 @@ int main(int argc, char * argv[] ){
    for(size_t ix=0;ix<SIZE;ix++){// row
      for (size_t jx =0;jx<2*SIZE;jx+=2){//column
        initial[ix][jx]=-2+(2*jx)/(float)(SIZE-1); // initial x
-       initial[ix][jx+1]=2-(2*jx)/(float)(SIZE-1); // initial y
+       initial[ix][jx+1]=2-(4*ix)/(float)(SIZE-1); // initial y
      }
    }
 
@@ -340,7 +326,7 @@ int main(int argc, char * argv[] ){
   free(all_roots_exact);
   free(rows_done);
   free(Row);
-  timespec_get(&ts, TIME_UTC);
-  printf("secs: %ld nsec: %ld \n",(ts.tv_sec-sec1), ts.tv_nsec-nsec1);
+  //timespec_get(&ts, TIME_UTC);
+  //printf("secs: %ld nsec: %ld \n",(ts.tv_sec-sec1), ts.tv_nsec-nsec1);
   return 0;  
 }
