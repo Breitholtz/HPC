@@ -4,7 +4,10 @@ In this assignment we have implemented parallellism with POSIX threads. This was
 
 This information is then stored in a global array and simultaneously written to a .ppm file by a separate thread. This thread only writes the information to file and has no part in the computations mentioned above. 
 
-Additionally,  us the includWe will go through and explain the different parts of the program.
+Additionally,  we use the following include files: 
+* pthread - for POSIX threads mutices and such
+* math - essentially only to use fabs()
+*  We will go through and explain the different parts of the program.
 
 ### 	Main
 In the main function we start by calling the argument parsing function which assigns the command line arguments to global variables. 
@@ -68,7 +71,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTkyNTg4OTYyNiwtNDk3NzkwMTU0LDEyMT
-c2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0Myw0MTMyNDY0
-LDIwOTc3ODEwMjRdfQ==
+eyJoaXN0b3J5IjpbNzk0OTc3NDkxLC00OTc3OTAxNTQsMTIxNz
+Y2NjM4NSwtOTkwMjU5MTA4LC0xNjE0ODU4NzQzLDQxMzI0NjQs
+MjA5Nzc4MTAyNF19
 -->
