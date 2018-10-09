@@ -36,7 +36,7 @@ Finally it takes the arguments that it has parsed and assigns them to the global
 ### threaded_newton
 This is the function which is used to calculate the convergence of every point in our picture. The function first assigns the argument which was sent to it into a local variable. Then the type declarations of all the used local variables follow. 
 
-The function itself co
+The function itself consists of several nested loops
 
 ### writeppm
 This function is used to take the data that is computed by threaded_newton and write it to two .ppm files. One for the iterations and one for which root the function converged to for each point. 
@@ -105,7 +105,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEzMDIzNTY0OTgsMTAyMTk5OTYzOSw5OD
-UzNTQzOCwtNDk3NzkwMTU0LDEyMTc2NjYzODUsLTk5MDI1OTEw
-OCwtMTYxNDg1ODc0Myw0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
+eyJoaXN0b3J5IjpbMjA5OTMxMDYwNSwxMDIxOTk5NjM5LDk4NT
+M1NDM4LC00OTc3OTAxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4
+LC0xNjE0ODU4NzQzLDQxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
