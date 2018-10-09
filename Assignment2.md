@@ -17,9 +17,9 @@ Additionally,  we use the following include files:
 In the main function we start by calling the argument parsing function which assigns the command line arguments to global variables. 
 
 ###  parse_args
-This function is in charge of parsing the command line arguments. It starts by using strncmp to see of the first two characters of the first argument matches any of our supported flags (-t or -l) and uses strtol to parse the number after the flag. It prints an error message to stdout and exits if if there is either something that cannot be parsed after the flag or if the argument is invalid.
+This function is in charge of parsing the command line arguments. It starts by using strncmp to see of the first two characters of the first argument matches any of our supported flags (-t or -l) and uses strtol to parse the number after the flag. It prints an error message to stdout and exits if if there is either something that cannot be parsed after the flag or if the flag/argument is invalid/unknown.
 
-It repeat this for the second argument 
+It repeats this for the second argument and then
 
 ### threaded_newton
 
@@ -79,7 +79,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTQ1MzYzNzYxOCwtNDk3NzkwMTU0LDEyMT
+eyJoaXN0b3J5IjpbMTgzNjM0NTE2OSwtNDk3NzkwMTU0LDEyMT
 c2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0Myw0MTMyNDY0
 LDIwOTc3ODEwMjRdfQ==
 -->
