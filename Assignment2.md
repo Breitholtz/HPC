@@ -12,7 +12,7 @@ Additionally,  we use the following include files:
 * string - for comparing strings
 * time - for our own benchmarking
  We will go through and explain the different parts of the program.
-// TODO: -maybe explain more what the program does and how it is related to the command line arguments, maybe is.
+// TODO: -maybe explain more what the program does and how it is related to the command line arguments, maybe only mention the arguments briefly.
 -maybe talk more about the constants that we have hardcoded and other global stuff
 ### 	Main
 In the main function we start by calling the argument parsing function, parse_args, which assigns the command line arguments to global variables. We then use these to allocate some memory which we will use some (previously defined) global arrays to point to. These global arrays are:
@@ -48,6 +48,8 @@ It first creates two character arrays on the stack which we will store our filen
 We use fprintf to easily write the header to both files, then we proceed to the main writing stage. It consists of a while loop which runs until an index $ix$ is equal to SIZE, i.e until we have fully written all the rows to the files. Inside we have a an if-statement which checks if row $ix$ is done.  If the row isn't done then we continue and wait for it to be done.
 
 If the row is done then we proceed to write it to the files with..... We also check if the iterations are larger than a chosen max  value, MAX_ITER, and if they are we set them to the max. After this we increment $ix$ and continue waiting until the next row is done. This repeats until the writing is finished. We then close the files and return.
+
+One should note that the while loop in this function ensures that th
 
 //TODO: change implementation so that we use fwrite 
 
@@ -108,8 +110,8 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTI5NzI2NjM3OSwtMzgwMjczNjcxLDIwOT
-kzMTA2MDUsMTAyMTk5OTYzOSw5ODUzNTQzOCwtNDk3NzkwMTU0
-LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0Myw0MT
-MyNDY0LDIwOTc3ODEwMjRdfQ==
+eyJoaXN0b3J5IjpbLTExMjc4MTQzMjYsLTM4MDI3MzY3MSwyMD
+k5MzEwNjA1LDEwMjE5OTk2MzksOTg1MzU0MzgsLTQ5Nzc5MDE1
+NCwxMjE3NjY2Mzg1LC05OTAyNTkxMDgsLTE2MTQ4NTg3NDMsND
+EzMjQ2NCwyMDk3NzgxMDI0XX0=
 -->
