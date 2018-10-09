@@ -1,6 +1,6 @@
 # Assignment 2 : Threads
 
-In this assignment we have implemented parallellism with POSIX threads 
+In this assignment we have implemented parallellism with POSIX threads. This was done in a program which takes the square of sidelength 2, centered at the origin, and divides it up into 
 
 
 
@@ -59,7 +59,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNTMyMDMyNTgxLDEyMTc2NjYzODUsLTk5MD
-I1OTEwOCwtMTYxNDg1ODc0Myw0MTMyNDY0LDIwOTc3ODEwMjRd
-fQ==
+eyJoaXN0b3J5IjpbMTI4NDI3NDg0MCwxMjE3NjY2Mzg1LC05OT
+AyNTkxMDgsLTE2MTQ4NTg3NDMsNDEzMjQ2NCwyMDk3NzgxMDI0
+XX0=
 -->
