@@ -19,7 +19,7 @@ In the main function we start by calling the argument parsing function which ass
 ###  parse_args
 This function is in charge of parsing the command line arguments. It starts by using strncmp to see of the first two characters of the first argument matches any of our supported flags (-t or -l) and uses strtol to parse the number after the flag. It prints an error message to stdout and exits if if there is either something that cannot be parsed after the flag or if the flag/argument is invalid/unknown.
 
-It repeats this for the second argument and then parses the third argument directly using strtol since we know it should only be a number, though the function errors if it cannot parse the argument or there
+It repeats this for the second argument and then parses the third argument directly using strtol since we know it should only be a number, though the function errors if it cannot parse the argument or there is some junk after the argument, such as '3s' for example.
 
 ### threaded_newton
 
@@ -79,7 +79,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEyNTY4MDU5NDQsLTQ5Nzc5MDE1NCwxMj
-E3NjY2Mzg1LC05OTAyNTkxMDgsLTE2MTQ4NTg3NDMsNDEzMjQ2
-NCwyMDk3NzgxMDI0XX0=
+eyJoaXN0b3J5IjpbOTg1MzU0MzgsLTQ5Nzc5MDE1NCwxMjE3Nj
+Y2Mzg1LC05OTAyNTkxMDgsLTE2MTQ4NTg3NDMsNDEzMjQ2NCwy
+MDk3NzgxMDI0XX0=
 -->
