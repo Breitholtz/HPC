@@ -25,7 +25,7 @@ This is followed by the computation of the roots for the given polynomial. For p
 
 We then create the threads that we need and initialise a mutex which we will use later. We here also allocate a small array called Row which we use to send in the starting row for each respective thread.
 
-Finally we join all the threads and 
+Finally we join all the threads and free all the memory which we have allocated in main.
 ###  parse_args
 This function is in charge of parsing the command line arguments. It starts by using strncmp to see of the first two characters of the first argument matches any of our supported flags (-t or -l) and uses strtol to parse the number after the flag. It prints an error message to stdout and exits if if there is either something that cannot be parsed after the flag or if the flag/argument is invalid/unknown.
 
@@ -37,6 +37,10 @@ Finally it takes the arguments that it has parsed and assigns them to the global
 
 
 ### writeppm
+
+
+
+# Additional stu
 In addition to the source code for your solution, you have to write a report in (kramdoc compatible) markdown that explains your solution, with focus on the program layout and performance characteristics. You shall also answers all questions posed in context of the assignment, if there is any.
 
 # Useful syntax help
@@ -91,7 +95,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNzEwOTM0ODEwLDk4NTM1NDM4LC00OTc3OT
-AxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4LC0xNjE0ODU4NzQz
-LDQxMzI0NjQsMjA5Nzc4MTAyNF19
+eyJoaXN0b3J5IjpbLTEzNDQxMTQyMjEsOTg1MzU0MzgsLTQ5Nz
+c5MDE1NCwxMjE3NjY2Mzg1LC05OTAyNTkxMDgsLTE2MTQ4NTg3
+NDMsNDEzMjQ2NCwyMDk3NzgxMDI0XX0=
 -->
