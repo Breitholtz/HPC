@@ -41,7 +41,7 @@ void parse_args(char * args[]){
      printf("Invalid argument '%ld' or Junk '%s' at end of argument 1!\n",res1,rest1);
      exit(1);
    }else{
-     //   printf(" thread argument is %d\n",(int)res1);
+     // successfully parsed
   }
   }else if(strncmp(args[1], "-l",2)==0){
   char  T[strlen(args[1])-1];
@@ -52,10 +52,10 @@ void parse_args(char * args[]){
      printf("Invalid argument '%ld' or Junk '%s' at end of argument 2!\n",res2,rest2);
      exit(1);
    }else{
-     //printf(" size argument is %d\n",(int)res2);
+     // successfully parsed
    }  
   }else{
-  printf("Unknown first argument!!!\n");
+    printf("Unknown first argument!!!\n"); // unknown flag
   exit(1);
  }
 
@@ -64,26 +64,26 @@ void parse_args(char * args[]){
  
  if(strncmp(args[2], "-l",2)==0){ // then take the rest of the string and convert to long
     
-    char  T[strlen(args[2])-1];
-   strncpy(T,args[2]+2,strlen(args[2])-2);
-   T[strlen(args[2])-2]='\0';
-    res2 = strtol(T,&rest2,10);
+    char  T2[strlen(args[2])-1];
+   strncpy(T2,args[2]+2,strlen(args[2])-2);
+   T2[strlen(args[2])-2]='\0';
+    res2 = strtol(T2,&rest2,10);
    if(strcmp(rest2,"")!=0 || res2<1){
      printf("Invalid argument '%ld' or Junk '%s' at end of argument 2!\n",res2,rest2);
      exit(1);
    }else{
-     // printf(" length argument is %d\n",(int)res2);
+     // successfully parsed
    }
  }else if(strncmp(args[2], "-t",2)==0){
- char  T[strlen(args[2])-1];
-   strncpy(T,args[2]+2,strlen(args[2])-2);
-   T[strlen(args[2])-2]='\0';
-   res1 = strtol(T,&rest1,10);
+ char  T2[strlen(args[2])-1];
+   strncpy(T2,args[2]+2,strlen(args[2])-2);
+   T2[strlen(args[2])-2]='\0';
+   res1 = strtol(T2,&rest1,10);
    if(strcmp(rest1,"")!=0 || res1<1){
      printf("Invalid argument '%ld' or Junk '%s' at end of argument 1!\n",res1,rest1);
      exit(1);
    }else{
-     //printf(" thread argument is %d\n",(int)res1);
+     // successfully parsed
    }
  }else{
   printf("Unknown second argument!!!\n");
@@ -96,10 +96,10 @@ void parse_args(char * args[]){
      printf("Invalid argument '%ld' or Junk '%s' at end of argument 3!\n",res3,rest3);
      exit(1);
    }else{
-     // printf(" exponent is %d\n",(int)res3);
+     // successfully parsed
    }
   
-
+   // Set parsed arguments to global variables
    POWER=(int)res3;
    SIZE=(int) res2;
    THREADS=(int) res1;
@@ -165,14 +165,18 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 		Index++;
 	    pthread_mutex_unlock(&mutex_write);
     }
-        //printf("-------------DONE WITH THREAD-------------\n");
-	return NULL;
+  	return NULL;
 }
 
 void * writeppm(void * args) { // void * since we want it to work with threads
     
   // write the information into the desired .ppm format and output the file, call the one with colours corresponding to roots newton_attractor_xd.ppm and the other newton_convergence_xd.ppm
   // where d in _xd.pmm is the power of x
+  
+  //struct timespec sleep_ts;
+  //sleep_ts.tv_nsec=100000;
+  //sleep_ts.tv_sec=0;
+  
 	// create filenames
 	char str[26];
 	char str2[26];
@@ -185,29 +189,31 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 	fprintf(fp, "P3\n %d %d\n %d\n", SIZE,SIZE,255); // colour header  
 	fprintf(fp2, "P3\n %d %d\n %d\n", SIZE,SIZE,MAX_ITER); // grayscale header
 
-	//printf("------------WRITING-------------\n");
 	size_t ix=0;
 	
 	while(ix < SIZE){
-	  //      pthread_mutex_lock(&mutex_write);
+	  //      pthread_mutex_lock(&mutex_write); // necessary
 		if(rows_done[ix] != 0){
-			//write to file
+		  //write to file
 		  for (size_t jx=0;jx<SIZE;jx++){
-		  fprintf(fp, "%d %d %d ", result[ix][jx]*20, 0, 0); // "hardcoded" colors for different results
-                  fprintf(fp2, "%d %d %d ", iterations[ix][jx], iterations[ix][jx], iterations[ix][jx]);
+		    fprintf(fp, "%d %d %d ", result[ix][jx]*20, 0, 0); // "hardcoded" colors for different results
+		    if(iterations[ix][jx]>MAX_ITER){
+		      fprintf(fp2, "%d %d %d ", MAX_ITER,MAX_ITER,MAX_ITER);
+		    }else{
+		      fprintf(fp2, "%d %d %d ", iterations[ix][jx], iterations[ix][jx], iterations[ix][jx]);
+		    }  
 		  }
 		  //   pthread_mutex_unlock(&mutex_write);
 		  ix++;
 		  continue;
 		}
+		//nanosleep(&sleep_ts,NULL);
 		// continue waiting for next row
 	}
        
        	fclose(fp);
         fclose(fp2);
 	//     printf("-----------OK - file %s and %s saved\n------------", str,str2);
-     
-  
   return NULL;
 }
 
@@ -220,15 +226,6 @@ int main(int argc, char * argv[] ){
   //long sec1=ts.tv_sec;
   //long nsec1=ts.tv_nsec;
   parse_args(argv); 
-  //printf("Arguments: 1:%d 2:%d 3:%d\n",THREADS, SIZE, POWER); // remove later
-
-  
-
-   
-  // calculating amount of rows that will be available to each thread
-   int numrest=SIZE%THREADS;
-   int numrows=SIZE/THREADS;
-
 
    float * initial_mat =(float *)malloc(2*sizeof(float*)*SIZE*SIZE);
    initial = (float**) malloc(2*sizeof(float*)*SIZE); // initial values to newton
@@ -275,46 +272,36 @@ int main(int argc, char * argv[] ){
      roots_exact[i][1] = sin(theta);
    }
 
-   // printf("----------------After memory allocation---------------\n");
-   int ret;
-   pthread_t threads[THREADS+1]; // create one extra for writing to file
-   
+   pthread_t threads[THREADS+1]; // create one extra for writing to file   
    pthread_mutex_init(&mutex_write, NULL); // mutex for accessing the rows_done array
  
-
-   // printf("-----------Start writing thread----------\n");
-// do writing thread
-    
+   //-------------CREATING THREADS-------------
+   int ret;
     if (ret = pthread_create(threads+THREADS, NULL, writeppm, NULL)) {
-      // printf("Error creating thread: %\n", ret);
+       printf("Error creating thread: %\n", ret);
     exit(1);
-  }
-    //    printf("power: %d",power);
-    // printf("-----------Start Newton threads----------\n");
- Index=THREADS;
- int  * Row=malloc(sizeof(int)*THREADS); // starting row for each of the threads
- 
-	for(int tx = 0; tx < THREADS; tx++){
-	  Row[tx] = tx;
-		if (ret = pthread_create(threads + tx, NULL, threaded_newton, (void*)&Row[tx])) {
-		printf("Error creating thread: %\n", ret);
-		exit(1);
-		  }
-	}
- 
-	//  printf("---------------All threads created-----------\n");
-  // joining threads if done
+    }
     
-  for (size_t tx=0; tx < THREADS; ++tx) { 
+    Index=THREADS;
+    int  * Row=malloc(sizeof(int)*THREADS); // starting row for each of the threads
+ 
+    for(int tx = 0; tx < THREADS; tx++){
+      Row[tx] = tx;
+      if (ret = pthread_create(threads + tx, NULL, threaded_newton, (void*)&Row[tx])) {
+	printf("Error creating thread: %\n", ret);
+	exit(1);
+      }
+    }
+ 
+    //-----------------JOINING THREADS--------------
+     
+  for (size_t tx=0; tx < THREADS+1; ++tx) { 
     if (ret = pthread_join(threads[tx], NULL)) {
       printf("Error joining thread: %d\n", ret);
       exit(1);
     }
   }
-  //printf("-------------------JOINED THREADS-----------------\n");
-   pthread_join(threads[THREADS],NULL);
-   // printf("-----------JOINED WRITE THREAD---------------\n");
- 
+  // ------------ FREEING ALLOCATED MEMORY-----------
   pthread_mutex_destroy(&mutex_write);
   free(result);
   free(result_mat);
