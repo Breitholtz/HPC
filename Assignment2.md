@@ -21,6 +21,8 @@ This function is in charge of parsing the command line arguments. It starts by u
 
 It repeats this for the second argument and then parses the third argument directly using strtol since we know it should only be a number, though the function errors if it cannot parse the argument or there is some junk after the argument, such as '3s' for example.
 
+Finally it takes the arguments that it has parsed and assigns them to the global variables: POWER, SIZE and THREADS.
+
 ### threaded_newton
 
 
@@ -79,7 +81,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbOTg1MzU0MzgsLTQ5Nzc5MDE1NCwxMjE3Nj
-Y2Mzg1LC05OTAyNTkxMDgsLTE2MTQ4NTg3NDMsNDEzMjQ2NCwy
-MDk3NzgxMDI0XX0=
+eyJoaXN0b3J5IjpbNzk3MDY5NzIxLDk4NTM1NDM4LC00OTc3OT
+AxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4LC0xNjE0ODU4NzQz
+LDQxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
