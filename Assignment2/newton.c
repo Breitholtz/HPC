@@ -128,7 +128,7 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 		z_im=initial[Row][2*jx+1];
 		which_root =POWER;
 		//Newtons method
-		while((True==0) && ( fabs(z_re) < MAX) && (fabs(z_im) < MAX)&&(iterations_loc<MAX_ITER)){
+		while((True==0) && ( fabs(z_re) < MAX) && (fabs(z_im) < MAX)){
 			arg_z = atan2(z_im, z_re);
 			abs_z = z_re* z_re + z_im* z_im;
 			abs_d=1;
