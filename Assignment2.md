@@ -57,15 +57,15 @@ One should note that the while loop in this function ensures that the rows of th
 
 ## Performance of the program
 
-| Size of image | Thread count | Exponent of polynomial |
-|:--------|:-------:|--------:|
-| cell1   | cell2   | cell3   |
-| cell4   | cell5   | cell6   |
-|----
-| cell1   | cell2   | cell3   |
-| cell4   | cell5   | cell6   |
+| Size of image | Thread count | Exponent of polynomial | Time| 
+|:--------|:-------:|--------:|--------:|
+| 1000  | 1  | 1   | |
+| 1000   | cell5   | cell6   ||
+|1000|1|3||
+| cell1   | cell2   | cell3   ||
+| cell4   | cell5   | cell6   ||
 |=====
-| Foot1   | Foot2   | Foot3   |
+| Foot1   | Foot2   | Foot3   | |
 {: rules="groups"}
 //TODO: change implementation so that we use fwrite 
 
@@ -126,9 +126,9 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTkwNTQxMzk2OCwtMTM5NjYwMTk0LC02Mz
-cxMTYzNjgsLTY0NzA0NjQ3NywtMzgwMjczNjcxLDIwOTkzMTA2
-MDUsMTAyMTk5OTYzOSw5ODUzNTQzOCwtNDk3NzkwMTU0LDEyMT
-c2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0Myw0MTMyNDY0
-LDIwOTc3ODEwMjRdfQ==
+eyJoaXN0b3J5IjpbLTE0MTA4MjA3MTQsLTkwNTQxMzk2OCwtMT
+M5NjYwMTk0LC02MzcxMTYzNjgsLTY0NzA0NjQ3NywtMzgwMjcz
+NjcxLDIwOTkzMTA2MDUsMTAyMTk5OTYzOSw5ODUzNTQzOCwtND
+k3NzkwMTU0LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1
+ODc0Myw0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
 -->
