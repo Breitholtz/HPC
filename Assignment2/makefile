@@ -8,8 +8,8 @@ LIB_DIRS = -L$(HOME)/local_arb/lib -L$(HOME)/local_flint/lib
 all: newton
 
 newton: newton.o
-	gcc -o $@ -O0 newton.o $(LIB_DIRS) $(LIBS) $(INCLUDE_DIRS)
+	gcc -o $@ -O2 newton.o $(LIB_DIRS) $(LIBS) $(INCLUDE_DIRS)
 newton.o: newton.c
-	gcc -c -O0 newton.c $(INCLUDE_DIRS)
+	gcc -c -O2 newton.c $(INCLUDE_DIRS)
 clean:
-	rm -f *.o; rm -f ./newton
+	rm -f *.o newton *.ppm
