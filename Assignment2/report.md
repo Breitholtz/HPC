@@ -41,7 +41,7 @@ Finally it takes the arguments that it has parsed and assigns them to the global
 ### threaded_newton
 This is the function which is used to calculate the convergence of every point in our picture. The function first assigns the argument which was sent to it into a local variable. Then the type declarations of all the used local variables follow. 
 
-The function itself consists of several nested loops
+The computation starts by e
 
 //TODO: explain that we use a global index to tell each thread which row to compute next.
 ### writeppm
@@ -128,10 +128,10 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEyMjEwNDkzMjMsMTI1Mjg5NjE1LDE2NT
-kwNjg4NDAsLTkwNTQxMzk2OCwtMTM5NjYwMTk0LC02MzcxMTYz
-NjgsLTY0NzA0NjQ3NywtMzgwMjczNjcxLDIwOTkzMTA2MDUsMT
-AyMTk5OTYzOSw5ODUzNTQzOCwtNDk3NzkwMTU0LDEyMTc2NjYz
-ODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0Myw0MTMyNDY0LDIwOT
-c3ODEwMjRdfQ==
+eyJoaXN0b3J5IjpbLTExMzM2OTQzNzksLTEyMjEwNDkzMjMsMT
+I1Mjg5NjE1LDE2NTkwNjg4NDAsLTkwNTQxMzk2OCwtMTM5NjYw
+MTk0LC02MzcxMTYzNjgsLTY0NzA0NjQ3NywtMzgwMjczNjcxLD
+IwOTkzMTA2MDUsMTAyMTk5OTYzOSw5ODUzNTQzOCwtNDk3Nzkw
+MTU0LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0My
+w0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
 -->
