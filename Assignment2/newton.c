@@ -6,7 +6,7 @@
 #include <time.h>
 #define DIST 0.001
 #define MAX 10000000000
-#define MAX_ITER 1000
+#define MAX_ITER 100
 
 pthread_mutex_t mutex_write; 
 
@@ -20,6 +20,9 @@ float ** roots_exact;
 int * rows_done;
 int ** result;
 int Index;
+
+char color[10][13] = {"255 225 25\t", "191 239 69\t", "60 180 75\t", "66 212 244\t", "67 99 216\t", "145 30 180\t", "240 50 230\t", "169 169 169\t", "245 130 49\t", "230 25 75\t"};
+char greyscale[MAX_ITER+1][13];
 
 void parse_args(char * args[]){
   
@@ -121,7 +124,7 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 	int which_root;
 	
 	while(Row < SIZE){
-	for(int jx = 0; jx < SIZE; jx++){ 
+	  for(int jx = 0; jx < SIZE; jx++){ 
 		True = 0;
 		iterations_loc=0; //keep track of iterations
 		z_re=initial[Row][2*jx];
@@ -157,11 +160,11 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 		iterations[Row][jx] = iterations_loc;
 		// set colours here?
 	}
- 	    pthread_mutex_lock(&mutex_write);
-	    if(Row<SIZE){
+	  pthread_mutex_lock(&mutex_write);
+ 	    if(Row<SIZE){
 		rows_done[Row] = 1;
 	    }
-		Row=Index;
+        	Row=Index;
 		Index++;
 	    pthread_mutex_unlock(&mutex_write);
     }
@@ -177,6 +180,10 @@ void * writeppm(void * args) { // void * since we want it to work with threads
   //sleep_ts.tv_nsec=100000;
   //sleep_ts.tv_sec=0;
   
+  int cap;
+  for (size_t ix = 0; ix < MAX_ITER + 1; ++ix) {
+    sprintf(greyscale[ix], "%ld %ld %ld\t", ix, ix, ix);
+  }
 	// create filenames
 	char str[26];
 	char str2[26];
@@ -195,6 +202,19 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 	  //      pthread_mutex_lock(&mutex_write); // necessary
 		if(rows_done[ix] != 0){
 		  //write to file
+		  
+		  for (size_t jx = 0; jx < SIZE; ++jx) { //prepare string?
+		    fwrite(color[result[ix][jx]],1,strlen(color[result[ix][jx]]),fp);
+		    cap = iterations[ix][jx] > MAX_ITER ? MAX_ITER : iterations[ix][jx];
+		    fwrite(greyscale[cap],1,strlen(greyscale[cap]),fp2);
+		  }
+		  fwrite("\n",1,1,fp); 
+		  fwrite("\n",1,1,fp2);
+		  ix++;
+		  
+		}
+		
+		/*
 		  for (size_t jx=0;jx<SIZE;jx++){
 		    fprintf(fp, "%d %d %d ", result[ix][jx]*20, 0, 0); // "hardcoded" colors for different results
 		    if(iterations[ix][jx]>MAX_ITER){
@@ -205,8 +225,9 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 		  }
 		  //   pthread_mutex_unlock(&mutex_write);
 		  ix++;
-		  continue;
-		}
+		  }
+		*/
+		  
 		//nanosleep(&sleep_ts,NULL);
 		// continue waiting for next row
 	}
@@ -214,6 +235,7 @@ void * writeppm(void * args) { // void * since we want it to work with threads
        	fclose(fp);
         fclose(fp2);
 	//     printf("-----------OK - file %s and %s saved\n------------", str,str2);
+	
   return NULL;
 }
 
@@ -221,10 +243,10 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 int main(int argc, char * argv[] ){
   // Grupp: hpcgp017
 
-  //struct timespec ts;
-  //timespec_get(&ts, TIME_UTC);
-  //long sec1=ts.tv_sec;
-  //long nsec1=ts.tv_nsec;
+  struct timespec ts;
+  timespec_get(&ts, TIME_UTC);
+  long sec1=ts.tv_sec;
+  long nsec1=ts.tv_nsec;
   parse_args(argv); 
 
    float * initial_mat =(float *)malloc(2*sizeof(float*)*SIZE*SIZE);
@@ -313,7 +335,7 @@ int main(int argc, char * argv[] ){
   free(all_roots_exact);
   free(rows_done);
   free(Row);
-  //timespec_get(&ts, TIME_UTC);
-  //printf("secs: %ld nsec: %ld \n",(ts.tv_sec-sec1), ts.tv_nsec-nsec1);
+  timespec_get(&ts, TIME_UTC);
+   printf("secs: %ld nsec: %ld \n",(ts.tv_sec-sec1), ts.tv_nsec-nsec1);
   return 0;  
 }
