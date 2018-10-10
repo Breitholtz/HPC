@@ -21,7 +21,7 @@ int * rows_done;
 int ** result;
 int Index;
 
-char color[10][13] = {"255 225 25\t", "191 239 69\t", "60 180 75\t", "66 212 244\t", "67 99 216\t", "145 30 180\t", "240 50 230\t", "169 169 169\t", "245 130 49\t", "230 25 75\t"};
+char color[10][13] = {"255 204 153\t", "255 255 153\t", "204 255 150\t", "153 255 204\t", "153 255 255\t", "153 204 255\t", "153 153 255\t", "204 153 255\t", "255 204 255\t", "255 153 204\t"};
 char greyscale[MAX_ITER+1][13];
 
 void parse_args(char * args[]){
@@ -226,10 +226,10 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 int main(int argc, char * argv[] ){
   // Grupp: hpcgp017
 
-  struct timespec ts;
+  /*struct timespec ts;
   timespec_get(&ts, TIME_UTC);
   long sec1=ts.tv_sec;
-  long nsec1=ts.tv_nsec;
+  long nsec1=ts.tv_nsec; */
   parse_args(argv); 
 
     //allocate memory for matrices in order to store results
@@ -256,7 +256,7 @@ int main(int argc, char * argv[] ){
      }
    }
 	
-	//keeo track of calculated rows
+	//keep track of calculated rows
    rows_done =calloc(SIZE, sizeof(int));
    
    //calculate exact roots 
@@ -322,7 +322,7 @@ int main(int argc, char * argv[] ){
   free(all_roots_exact);
   free(rows_done);
   free(Row);
-  timespec_get(&ts, TIME_UTC);
-   printf("secs: %ld nsec: %ld \n",(ts.tv_sec-sec1), ts.tv_nsec-nsec1);
+  //timespec_get(&ts, TIME_UTC);
+  //printf("secs: %ld nsec: %ld \n",(ts.tv_sec-sec1), ts.tv_nsec-nsec1);
   return 0;  
 }
