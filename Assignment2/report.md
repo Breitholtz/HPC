@@ -45,8 +45,8 @@ The computation starts by going into a while loop until all rows have been calcu
 
 Thereafter, we use the fact that we may write the iteration for the imaginary and real part of our polynomial on the form
 $$
- z_{re}=z_{re}(d-1)+1/ \\
- z_{im}=
+ Z_{re}=z_{re}(d-1)+1/d^{n-1}\cos(arg(z)(1-d))/d \\
+ Z_{im}=
 $$
 
 
@@ -135,10 +135,10 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEzMjgyNzUxNjgsLTEyMjEwNDkzMjMsMT
-I1Mjg5NjE1LDE2NTkwNjg4NDAsLTkwNTQxMzk2OCwtMTM5NjYw
-MTk0LC02MzcxMTYzNjgsLTY0NzA0NjQ3NywtMzgwMjczNjcxLD
-IwOTkzMTA2MDUsMTAyMTk5OTYzOSw5ODUzNTQzOCwtNDk3Nzkw
-MTU0LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0My
-w0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
+eyJoaXN0b3J5IjpbLTYyODcwNjM2MSwtMTIyMTA0OTMyMywxMj
+UyODk2MTUsMTY1OTA2ODg0MCwtOTA1NDEzOTY4LC0xMzk2NjAx
+OTQsLTYzNzExNjM2OCwtNjQ3MDQ2NDc3LC0zODAyNzM2NzEsMj
+A5OTMxMDYwNSwxMDIxOTk5NjM5LDk4NTM1NDM4LC00OTc3OTAx
+NTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4LC0xNjE0ODU4NzQzLD
+QxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
