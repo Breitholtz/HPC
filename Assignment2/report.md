@@ -45,12 +45,13 @@ The computation starts by going into a while loop until all rows have been calcu
 
 Thereafter, we use the fact that we may write the iteration for the imaginary and real part of our polynomial on the form
 $$
- Z_{re}=z_{re}(d-1)+1/d^{n-1}\cos(arg(z)(1-d))/d \\
- Z_{im}=
-$$
+ Z_{re}=[z_{re}(d-1)+1/d^{n-1}\cos(arg(z)(1-d))]/d \\
+ Z_{im}=[z_{re}(d-1)+1/d^{n-1}\sin(arg(z)(1-d))]/d 
+$$ 
+wh
 
 
-//TODO: explain that we use a global index to tell each thread which row to compute next.
+//TODO: explain that we use a global index to tell each thread which row to compute next; maybe write full derivation of newton expression
 ### writeppm
 This function is used to take the data that is computed by threaded_newton and write it to two .ppm files. One for the iterations and one for which root the function converged to for each point. 
 
@@ -135,10 +136,10 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTYyODcwNjM2MSwtMTIyMTA0OTMyMywxMj
-UyODk2MTUsMTY1OTA2ODg0MCwtOTA1NDEzOTY4LC0xMzk2NjAx
-OTQsLTYzNzExNjM2OCwtNjQ3MDQ2NDc3LC0zODAyNzM2NzEsMj
-A5OTMxMDYwNSwxMDIxOTk5NjM5LDk4NTM1NDM4LC00OTc3OTAx
-NTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4LC0xNjE0ODU4NzQzLD
-QxMzI0NjQsMjA5Nzc4MTAyNF19
+eyJoaXN0b3J5IjpbODY1MDgxMjU2LC0xMjIxMDQ5MzIzLDEyNT
+I4OTYxNSwxNjU5MDY4ODQwLC05MDU0MTM5NjgsLTEzOTY2MDE5
+NCwtNjM3MTE2MzY4LC02NDcwNDY0NzcsLTM4MDI3MzY3MSwyMD
+k5MzEwNjA1LDEwMjE5OTk2MzksOTg1MzU0MzgsLTQ5Nzc5MDE1
+NCwxMjE3NjY2Mzg1LC05OTAyNTkxMDgsLTE2MTQ4NTg3NDMsND
+EzMjQ2NCwyMDk3NzgxMDI0XX0=
 -->
