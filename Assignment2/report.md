@@ -39,7 +39,7 @@ It repeats this for the second argument and then parses the third argument direc
 Finally it takes the arguments that it has parsed and assigns them to the global variables: POWER, SIZE and THREADS.
 
 ### threaded_newton
-This is the function which is used to calculate the convergence of every point in our picture. The function first assigns the argument which was sent to it into a local variable corresponding to the starting row. Then the type declarations of all the used local variables follow. 
+This is the function which is used to calculate the convergence of every point in our picture. To  The function first assigns the argument which was sent to it into a local variable corresponding to the starting row. Then the type declarations of all the used local variables follow. 
 
 The computation starts by going into a while loop until all rows have been calculated. Each thread has been assigned a starting row by the passed argument and as such starts at that row. Then we directly go into a for loop over the elements of the current row; for every element we now compute the desired quantities using newtons method. The method begins by checking: if we are done,  too close to the origin or have diverged too far in either the real or imaginary direction. 
 
@@ -50,7 +50,7 @@ $$
 $$ 
 We check after the square norm after every iteration to see if we are sufficiently close to any of the roots. This is hardcoded as to not use any built in function for the multiplication. If we are close enough we note that in a local variable and break, otherwise the function iterates once more while incrementing the count of how many iterations there has been.
 
-When we are done we save the results into our global arrays and consult the global index to see which index the next row we should compute has. We then set our local row index to that index and then increment the global index so the next thread(if there is one) will not compute the same one. The global index is checked under a mutex so as to not cause any conflicts between the threads.
+When we are done we save the results into our global arrays and set that row to 1 in the rows_done array. We then consult the global index to see which index the next row we should compute has. We then set our local row index to that index and then increment the global index so the next thread(if there is one) will not compute the same one. The global index is checked under a mutex so as to not cause any conflicts between the threads.
 
 
 //TODO: explain that we use a global index to tell each thread which row to compute next; maybe write full derivation of newton expression
@@ -138,7 +138,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTY4NjI2NjM0OCwtMTIyMTA0OTMyMywxMj
+eyJoaXN0b3J5IjpbLTMwMjQzODEwOCwtMTIyMTA0OTMyMywxMj
 UyODk2MTUsMTY1OTA2ODg0MCwtOTA1NDEzOTY4LC0xMzk2NjAx
 OTQsLTYzNzExNjM2OCwtNjQ3MDQ2NDc3LC0zODAyNzM2NzEsMj
 A5OTMxMDYwNSwxMDIxOTk5NjM5LDk4NTM1NDM4LC00OTc3OTAx
