@@ -160,11 +160,9 @@ void * threaded_newton(void * args){  // void * since we want it to work with th
 		iterations[Row][jx] = iterations_loc;
 		// set colours here?
 	}
-	  pthread_mutex_lock(&mutex_write);
- 	    if(Row<SIZE){
 		rows_done[Row] = 1;
-	    }
-        	Row=Index;
+		pthread_mutex_lock(&mutex_write);
+        Row=Index;
 		Index++;
 	    pthread_mutex_unlock(&mutex_write);
     }
@@ -199,7 +197,6 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 	size_t ix=0;
 	
 	while(ix < SIZE){
-	  //      pthread_mutex_lock(&mutex_write); // necessary
 		if(rows_done[ix] != 0){
 		  //write to file
 		  
@@ -213,20 +210,6 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 		  ix++;
 		  
 		}
-		
-		/*
-		  for (size_t jx=0;jx<SIZE;jx++){
-		    fprintf(fp, "%d %d %d ", result[ix][jx]*20, 0, 0); // "hardcoded" colors for different results
-		    if(iterations[ix][jx]>MAX_ITER){
-		      fprintf(fp2, "%d %d %d ", MAX_ITER,MAX_ITER,MAX_ITER);
-		    }else{
-		      fprintf(fp2, "%d %d %d ", iterations[ix][jx], iterations[ix][jx], iterations[ix][jx]);
-		    }  
-		  }
-		  //   pthread_mutex_unlock(&mutex_write);
-		  ix++;
-		  }
-		*/
 		  
 		//nanosleep(&sleep_ts,NULL);
 		// continue waiting for next row
@@ -234,7 +217,7 @@ void * writeppm(void * args) { // void * since we want it to work with threads
        
        	fclose(fp);
         fclose(fp2);
-	//     printf("-----------OK - file %s and %s saved\n------------", str,str2);
+	//printf("-----------OK - file %s and %s saved\n------------", str,str2);
 	
   return NULL;
 }
@@ -249,6 +232,7 @@ int main(int argc, char * argv[] ){
   long nsec1=ts.tv_nsec;
   parse_args(argv); 
 
+    //allocate memory for matrices in order to store results
    float * initial_mat =(float *)malloc(2*sizeof(float*)*SIZE*SIZE);
    initial = (float**) malloc(2*sizeof(float*)*SIZE); // initial values to newton
    int * iterations_mat= (int *)malloc(sizeof(int*)*SIZE*SIZE);
@@ -256,8 +240,8 @@ int main(int argc, char * argv[] ){
    int * result_mat= (int *)malloc(sizeof(int*)*SIZE*SIZE);
    result = (int**) malloc(sizeof(int*) * SIZE);
    
-
-   for ( size_t ix = 0, jx = 0; ix < SIZE; ++ix, jx+=SIZE ){ // setting pointers to every row in memory
+	// setting pointers to every row in memory
+   for ( size_t ix = 0, jx = 0; ix < SIZE; ++ix, jx+=SIZE ){
        result[ix]= result_mat + jx;
        iterations[ix] = iterations_mat + jx;
    }
@@ -271,13 +255,11 @@ int main(int argc, char * argv[] ){
        initial[ix][jx+1]=2-(4*ix)/(float)(SIZE-1); // initial y
      }
    }
-
-   rows_done =malloc(sizeof(int*)*SIZE);
-   for (size_t i=0;i<SIZE;i++){
-     rows_done[i]=0;
-   }
-
+	
+	//keeo track of calculated rows
+   rows_done =calloc(SIZE, sizeof(int));
    
+   //calculate exact roots 
    float * all_roots_exact = malloc(2*POWER*sizeof(float));
    roots_exact = malloc(POWER*sizeof(float*));
    
@@ -294,19 +276,16 @@ int main(int argc, char * argv[] ){
      roots_exact[i][1] = sin(theta);
    }
 
+   //Treading
    pthread_t threads[THREADS+1]; // create one extra for writing to file   
    pthread_mutex_init(&mutex_write, NULL); // mutex for accessing the rows_done array
  
    //-------------CREATING THREADS-------------
-   int ret;
-    if (ret = pthread_create(threads+THREADS, NULL, writeppm, NULL)) {
-       printf("Error creating thread: %\n", ret);
-    exit(1);
-    }
-    
+	int ret;
     Index=THREADS;
     int  * Row=malloc(sizeof(int)*THREADS); // starting row for each of the threads
- 
+	
+	//Start Newton threads
     for(int tx = 0; tx < THREADS; tx++){
       Row[tx] = tx;
       if (ret = pthread_create(threads + tx, NULL, threaded_newton, (void*)&Row[tx])) {
@@ -314,17 +293,25 @@ int main(int argc, char * argv[] ){
 	exit(1);
       }
     }
- 
-    //-----------------JOINING THREADS--------------
-     
-  for (size_t tx=0; tx < THREADS+1; ++tx) { 
-    if (ret = pthread_join(threads[tx], NULL)) {
-      printf("Error joining thread: %d\n", ret);
-      exit(1);
+	
+	//start writing thread
+    if (ret = pthread_create(threads+THREADS, NULL, writeppm, NULL)) {
+       printf("Error creating thread: %\n", ret);
+    exit(1);
     }
-  }
+	
+    //-----------------JOINING THREADS--------------
+    //Join 
+	for (size_t tx=0; tx < THREADS + 1; ++tx) { 
+		if (ret = pthread_join(threads[tx], NULL)) {
+		printf("Error joining thread: %d\n", ret);
+		exit(1);
+		}
+	}
+  
+	pthread_mutex_destroy(&mutex_write);
+
   // ------------ FREEING ALLOCATED MEMORY-----------
-  pthread_mutex_destroy(&mutex_write);
   free(result);
   free(result_mat);
   free(iterations);
