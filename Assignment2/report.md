@@ -43,7 +43,7 @@ This is the function which is used to calculate the convergence of every point i
 
 The computation starts by going into a while loop until all rows have been calculated. Each thread has been assigned a starting row by the passed argument and as such starts at that row. Then we directly go into a for loop over the elements of the current row; for every element we now compute the desired quantities using newtons method. The method begins by checking: if we are done,  too close to the origin or have diverged too far in either the real or imaginary direction. 
 
-T
+Thereafter, we use the fact that we may write the iteration for 
 
 
 //TODO: explain that we use a global index to tell each thread which row to compute next.
@@ -131,7 +131,7 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTU1MzMyMzc1MiwtMTIyMTA0OTMyMywxMj
+eyJoaXN0b3J5IjpbMTM3MzkzMTQ4NiwtMTIyMTA0OTMyMywxMj
 UyODk2MTUsMTY1OTA2ODg0MCwtOTA1NDEzOTY4LC0xMzk2NjAx
 OTQsLTYzNzExNjM2OCwtNjQ3MDQ2NDc3LC0zODAyNzM2NzEsMj
 A5OTMxMDYwNSwxMDIxOTk5NjM5LDk4NTM1NDM4LC00OTc3OTAx
