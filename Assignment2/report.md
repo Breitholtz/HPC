@@ -41,7 +41,10 @@ Finally it takes the arguments that it has parsed and assigns them to the global
 ### threaded_newton
 This is the function which is used to calculate the convergence of every point in our picture. The function first assigns the argument which was sent to it into a local variable corresponding to the starting row. Then the type declarations of all the used local variables follow. 
 
-The computation starts by going into a while loop until all rows have been calculated. Each thread has been assigned a starting row by the passed argument and as such starts at that row. Then we directly go into a for loop over the elements of the current row; for every element we now compute the desired quantities using newtons method. The method begins by checking: if we are done,  too close to the origin or have diverged too far in either real or imaginary part. 
+The computation starts by going into a while loop until all rows have been calculated. Each thread has been assigned a starting row by the passed argument and as such starts at that row. Then we directly go into a for loop over the elements of the current row; for every element we now compute the desired quantities using newtons method. The method begins by checking: if we are done,  too close to the origin or have diverged too far in either the real or imaginary direction. 
+
+T
+
 
 //TODO: explain that we use a global index to tell each thread which row to compute next.
 ### writeppm
@@ -128,10 +131,10 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE0NDY5NzU2MDMsLTEyMjEwNDkzMjMsMT
-I1Mjg5NjE1LDE2NTkwNjg4NDAsLTkwNTQxMzk2OCwtMTM5NjYw
-MTk0LC02MzcxMTYzNjgsLTY0NzA0NjQ3NywtMzgwMjczNjcxLD
-IwOTkzMTA2MDUsMTAyMTk5OTYzOSw5ODUzNTQzOCwtNDk3Nzkw
-MTU0LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0My
-w0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
+eyJoaXN0b3J5IjpbMTU1MzMyMzc1MiwtMTIyMTA0OTMyMywxMj
+UyODk2MTUsMTY1OTA2ODg0MCwtOTA1NDEzOTY4LC0xMzk2NjAx
+OTQsLTYzNzExNjM2OCwtNjQ3MDQ2NDc3LC0zODAyNzM2NzEsMj
+A5OTMxMDYwNSwxMDIxOTk5NjM5LDk4NTM1NDM4LC00OTc3OTAx
+NTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4LC0xNjE0ODU4NzQzLD
+QxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
