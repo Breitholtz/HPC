@@ -51,7 +51,7 @@ It first creates two character arrays on the stack which we will store our filen
 
 We use fprintf to easily write the header to both files, then we proceed to the main writing stage. It consists of a while loop which runs until an index $ix$ is equal to SIZE, i.e until we have fully written all the rows to the files. Inside we have a an if-statement which checks if row $ix$ is done.  If the row isn't done then we continue and wait for it to be done.
 
-If the row is done then we proceed to write it to the files with fwrite writing elementwise. We also check if the iterations are larger than a chosen max  value, MAX_ITER, and if they are we set them to the max. After this we increment $ix$ and continue waiting until the next row is done. This repeats until the writing is finished. We then close the files and return.
+If the row is done then we proceed to write it to the files with fwrite by writing elementwise. We also check if the iterations are larger than a chosen max  value, MAX_ITER, and if they are we set them to the max. After this we increment $ix$ and continue waiting until the next row is done. This repeats until the writing is finished. We then close the files and return.
 
 One should note that the while loop in this function ensures that the rows of the arrays are written in consecutive order which means that the picure will be assembled correctly.
 
@@ -128,10 +128,10 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTE0MDk0MDgzMCwxMjUyODk2MTUsMTY1OT
-A2ODg0MCwtOTA1NDEzOTY4LC0xMzk2NjAxOTQsLTYzNzExNjM2
-OCwtNjQ3MDQ2NDc3LC0zODAyNzM2NzEsMjA5OTMxMDYwNSwxMD
-IxOTk5NjM5LDk4NTM1NDM4LC00OTc3OTAxNTQsMTIxNzY2NjM4
-NSwtOTkwMjU5MTA4LC0xNjE0ODU4NzQzLDQxMzI0NjQsMjA5Nz
-c4MTAyNF19
+eyJoaXN0b3J5IjpbLTEyMjEwNDkzMjMsMTI1Mjg5NjE1LDE2NT
+kwNjg4NDAsLTkwNTQxMzk2OCwtMTM5NjYwMTk0LC02MzcxMTYz
+NjgsLTY0NzA0NjQ3NywtMzgwMjczNjcxLDIwOTkzMTA2MDUsMT
+AyMTk5OTYzOSw5ODUzNTQzOCwtNDk3NzkwMTU0LDEyMTc2NjYz
+ODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0Myw0MTMyNDY0LDIwOT
+c3ODEwMjRdfQ==
 -->
