@@ -55,6 +55,18 @@ If the row is done then we proceed to write it to the files with..... We also ch
 
 One should note that the while loop in this function ensures that the rows of the arrays are written in consecutive order which means that the picure will be assembled correctly.
 
+## Performance of the program
+
+| Size of image | Thread count | Exponent of polynomial |
+|:--------|:-------:|--------:|
+| cell1   | cell2   | cell3   |
+| cell4   | cell5   | cell6   |
+|----
+| cell1   | cell2   | cell3   |
+| cell4   | cell5   | cell6   |
+|=====
+| Foot1   | Foot2   | Foot3   |
+{: rules="groups"}
 //TODO: change implementation so that we use fwrite 
 
 
@@ -114,9 +126,9 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEzOTY2MDE5NCwtNjM3MTE2MzY4LC02ND
-cwNDY0NzcsLTM4MDI3MzY3MSwyMDk5MzEwNjA1LDEwMjE5OTk2
-MzksOTg1MzU0MzgsLTQ5Nzc5MDE1NCwxMjE3NjY2Mzg1LC05OT
-AyNTkxMDgsLTE2MTQ4NTg3NDMsNDEzMjQ2NCwyMDk3NzgxMDI0
-XX0=
+eyJoaXN0b3J5IjpbLTkwNTQxMzk2OCwtMTM5NjYwMTk0LC02Mz
+cxMTYzNjgsLTY0NzA0NjQ3NywtMzgwMjczNjcxLDIwOTkzMTA2
+MDUsMTAyMTk5OTYzOSw5ODUzNTQzOCwtNDk3NzkwMTU0LDEyMT
+c2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0Myw0MTMyNDY0
+LDIwOTc3ODEwMjRdfQ==
 -->
