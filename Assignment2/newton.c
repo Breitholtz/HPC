@@ -224,7 +224,7 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 
 
 int main(int argc, char * argv[] ){
-  // Grupp: hpcgp017
+  //Grupp: hpcgp017
 
   /*struct timespec ts;
   timespec_get(&ts, TIME_UTC);
