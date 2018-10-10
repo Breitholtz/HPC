@@ -62,7 +62,7 @@ One should note that the while loop in this function ensures that the rows of th
 | 1000  | 1  | 1   |          |
 | 1000   | 1   | 3  |         |
 |1000|1         | 5 |         |
-| cell1   | cell2   |       ||
+| 1000  | 1   |    7 |        |
 | cell4   | cell5   | cell6   ||
 |=====
 | Foot1   | Foot2   | Foot3   | |
@@ -126,9 +126,9 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjI4MzAyODQsLTkwNTQxMzk2OCwtMTM5Nj
-YwMTk0LC02MzcxMTYzNjgsLTY0NzA0NjQ3NywtMzgwMjczNjcx
-LDIwOTkzMTA2MDUsMTAyMTk5OTYzOSw5ODUzNTQzOCwtNDk3Nz
-kwMTU0LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0
-Myw0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
+eyJoaXN0b3J5IjpbMTY1OTA2ODg0MCwtOTA1NDEzOTY4LC0xMz
+k2NjAxOTQsLTYzNzExNjM2OCwtNjQ3MDQ2NDc3LC0zODAyNzM2
+NzEsMjA5OTMxMDYwNSwxMDIxOTk5NjM5LDk4NTM1NDM4LC00OT
+c3OTAxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4LC0xNjE0ODU4
+NzQzLDQxMzI0NjQsMjA5Nzc4MTAyNF19
 -->
