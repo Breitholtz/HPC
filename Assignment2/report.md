@@ -48,7 +48,7 @@ $$
  Z_{re}=[z_{re}(d-1)+1/d^{n-1}\cos(arg(z)(1-d))]/d \\
  Z_{im}=[z_{re}(d-1)+1/d^{n-1}\sin(arg(z)(1-d))]/d 
 $$ 
-We check after the square(hardcoded) norm after every iteration to see if we are sufficiently close to
+We check after the square norm after every iteration to see if we are sufficiently close to any of the roots. This is hardcoded as to not use any built in function for the multiplication. If we are close enough we note that in a local variable and break, otherwise the function iterates once more while incrementing the count of how many iterations there 
 
 
 //TODO: explain that we use a global index to tell each thread which row to compute next; maybe write full derivation of newton expression
@@ -136,10 +136,10 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjE4OTMwNzM5LC0xMjIxMDQ5MzIzLDEyNT
-I4OTYxNSwxNjU5MDY4ODQwLC05MDU0MTM5NjgsLTEzOTY2MDE5
-NCwtNjM3MTE2MzY4LC02NDcwNDY0NzcsLTM4MDI3MzY3MSwyMD
-k5MzEwNjA1LDEwMjE5OTk2MzksOTg1MzU0MzgsLTQ5Nzc5MDE1
-NCwxMjE3NjY2Mzg1LC05OTAyNTkxMDgsLTE2MTQ4NTg3NDMsND
-EzMjQ2NCwyMDk3NzgxMDI0XX0=
+eyJoaXN0b3J5IjpbLTEzNjUxNDk1MTgsLTEyMjEwNDkzMjMsMT
+I1Mjg5NjE1LDE2NTkwNjg4NDAsLTkwNTQxMzk2OCwtMTM5NjYw
+MTk0LC02MzcxMTYzNjgsLTY0NzA0NjQ3NywtMzgwMjczNjcxLD
+IwOTkzMTA2MDUsMTAyMTk5OTYzOSw5ODUzNTQzOCwtNDk3Nzkw
+MTU0LDEyMTc2NjYzODUsLTk5MDI1OTEwOCwtMTYxNDg1ODc0My
+w0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
 -->
