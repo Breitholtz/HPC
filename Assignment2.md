@@ -57,6 +57,8 @@ One should note that the while loop in this function ensures that the rows of th
 
 ## Performance of the program
 
+The parse_args seems to take about 12000 ns to complete its parsing which is fairly fast and as such we did not consider it for optimisation but if one wrote it in a more condensed way without errorchecking one could get the time down significantly. 
+
 | Size of image | Thread count | Exponent of polynomial | Time| 
 |:--------|:-------:|--------:|--------:|
 | 1000  | 1  | 1   |          |
@@ -126,9 +128,9 @@ return 0;
 ~~~
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTY1OTA2ODg0MCwtOTA1NDEzOTY4LC0xMz
-k2NjAxOTQsLTYzNzExNjM2OCwtNjQ3MDQ2NDc3LC0zODAyNzM2
-NzEsMjA5OTMxMDYwNSwxMDIxOTk5NjM5LDk4NTM1NDM4LC00OT
-c3OTAxNTQsMTIxNzY2NjM4NSwtOTkwMjU5MTA4LC0xNjE0ODU4
-NzQzLDQxMzI0NjQsMjA5Nzc4MTAyNF19
+eyJoaXN0b3J5IjpbMTI1Mjg5NjE1LDE2NTkwNjg4NDAsLTkwNT
+QxMzk2OCwtMTM5NjYwMTk0LC02MzcxMTYzNjgsLTY0NzA0NjQ3
+NywtMzgwMjczNjcxLDIwOTkzMTA2MDUsMTAyMTk5OTYzOSw5OD
+UzNTQzOCwtNDk3NzkwMTU0LDEyMTc2NjYzODUsLTk5MDI1OTEw
+OCwtMTYxNDg1ODc0Myw0MTMyNDY0LDIwOTc3ODEwMjRdfQ==
 -->
