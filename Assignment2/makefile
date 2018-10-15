@@ -12,4 +12,4 @@ newton: newton.o
 newton.o: newton.c
 	gcc -c -O2 newton.c $(INCLUDE_DIRS)
 clean:
-	rm -f *.o newton *.ppm
+	rm -f *.o newton
