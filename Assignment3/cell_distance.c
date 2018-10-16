@@ -10,9 +10,13 @@ size_t thread_count;
 // we have a maximum distance of sqrt(3)*20<34.66, i.e we may have at most between 00.00 and 34.66 roughly speaking
 // and if we take one place per number we get 3466 different places in our vector to increment
 
+static int cmp(const void *p1, const void *p2){
+  return *(int*)p1 > *(int*)p2;
+}
+
 void parsefile(){
   
-  //  char *filename="cell_e5";
+  //char *filename="cell_e5";
   char *filename="cell_test";
   FILE *fp = fopen(filename,"r"); // open the file to read
 
@@ -27,17 +31,17 @@ void parsefile(){
   rewind(fp); // go back to beginning of file
 
 
-
-  float cells[linecount][num_points]; //ok? This is the array we use to store the cells coordinates
+  //TODO: malloc and free these correctly to acount for large sizes
+  float cells[linecount][num_points]; //This is the array we use to store the cells coordinates NOT OK, should be put on the heap and then freed!!
   
-  unsigned short dist[linecount][linecount]; // we store the distances as short integers as we may use the trick described above at max_num_freq
+  unsigned short dist[linecount][linecount]; // we store the distances as short integers as we may use the trick described above at max_num_freq; NOT OK, should be put on the heap and then freed!!
 
     /*
       Note: we are be able to just parse the coordinates as short integers aswell since we only need to scale by a factor and cast to get the necessary precision
       although the cast when we need to do the sqrt might be expensive; although I do not know how expensive...
     */
-  
-  //#pragma omp parallel for shared(fp,linecount,cells) schedule(static, linecount/thread_count) //
+  // TODO: figure out how to parallelize this
+  //#pragma omp parallel for shared(fp,linecount,cells) schedule(static, linecount/thread_count) // why doesn't this work?
       for(size_t i=0;i<linecount;i++){
 	fscanf(fp, "%f %f %f",&cells[i][0],&cells[i][1],&cells[i][2]); // ok, but we could use a similar parse to how we parse args since we know exactly how the numbers are arranged! Confirmed faster by Martin!
 	for(size_t j=0;j<3;j++){
@@ -64,16 +68,21 @@ void parsefile(){
 	{
 	dist[i][j]=(unsigned short)roundf(sqrtf(((cells[i][0]-cells[j][0])*(cells[i][0]-cells[j][0])+
 				   (cells[i][1]-cells[j][1])*(cells[i][1]-cells[j][1])+
-				   (cells[i][2]-cells[j][2])*(cells[i][2]-cells[j][2])))*100);
+						 (cells[i][2]-cells[j][2])*(cells[i][2]-cells[j][2])))*100); // do we really need roundf???
 	  num_dist[dist[i][j]]++;
 	}
 	  printf("dist %hu\n", dist[i][j]);
       }
     }
-}
-
-
- // OPTIONAL THINGS TO IMPLEMENT: having a validation for the test data we have, the parsing as short integers
+ }
+ 
+ // TODO: sort the arrays so we get ascending order on distances and frequencies should be sorted the same to preserve their place "next to" their respective distance
+ for(unsigned long i=0;i<linecount;i++){
+      for(unsigned long j=i+1;j<linecount;j++){
+	printf("%.2f %d\n",dist[i][j]/100.0,num_dist[dist[i][j]]);
+      }
+ }
+ // OPTIONAL THINGS TO IMPLEMENT: having a validation for the test data we have, do the parsing as short integers
 
  //
  // test correctness by writing to stdout and comparing to cell_validate
