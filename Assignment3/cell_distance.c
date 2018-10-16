@@ -1,14 +1,43 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<omp.h>
+#include<time.h>
 
-
+#define num_points 3 // point amount in a cell
+#define max_cells 1024 // set to a random number for now, what should this be?
 /*
-suggestions for functions that we might write:
-- a parser for the input file 
+suggestions for functions that we might write: 
 - function that computes distances between points, perhaps store as char* and cast when we want to compute lengths?
  This since char only uses 1 byte per character and float is 4 bytes and a double is 8 bytes so we must convert the ascii of the char to something small to get anything 
   that is better than just storing as a float
  */
+
+void parsefile(){
+  
+    char *filename="cell_e5";
+  //  char *filename="cell_test";
+  FILE *fp = fopen(filename,"r"); // open the file to read
+
+  // want to know how large the file; i.e how many cells are we dealing with?
+  unsigned long linecount = 0;
+  while(!feof(fp)){ //while we are not at the end of the file
+    if(getc(fp)=='\n'){
+      linecount++; // every newline means new line in the file
+    }
+  }
+  printf("lines in file: %lu\n",linecount);
+
+  // parse the cells into memory
+
+#pragma omp parallell shared(linecount, num_points) // parse the file in parallell; variables in the shared() is shared between threads
+  {
+    
+
+
+  }
+  
+}
+
 int main(int argc, char * argv[]){
 
   int thread_count=0;
@@ -29,6 +58,8 @@ int main(int argc, char * argv[]){
       return 1;
     }
 
+    //set number of threads
+    omp_set_num_threads(thread_count);
   // parse file
     /*
       - there is 24 characters in every row; 7 for each number, 2 spaces and a newline, i.e one cell =24 bytes 
@@ -36,6 +67,11 @@ int main(int argc, char * argv[]){
         however, since every row is 24 bytes we will have to process at most 1/96th of the maximum of all cells at any one time to have enough bytes to work with
 	, i.e we may have at most 2^32/96 cell processing at any one time. This is about 44 million.
      */
+    parsefile();
+
+
+
+    
     // memory allocation ?
     // take in only certain bit of the file?
 
