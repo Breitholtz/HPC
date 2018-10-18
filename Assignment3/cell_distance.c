@@ -5,7 +5,6 @@
 #include<time.h>
 size_t thread_count;
 #define num_points 3 // point amount in a cell
-//#define max_cells 10000000 // set to ten million for now, what should this be?
 #define max_num_freq 3466 //there is 4 numbers that decide the length(since we output with 2 decimal places)
 // we have a maximum distance of sqrt(3)*20<34.66, i.e we may have at most between 00.00 and 34.66 roughly speaking
 // and if we take one place per number we get 3466 different places in our vector to increment
@@ -23,6 +22,8 @@ void parsefile(){
   char *filename="cell_test";
   FILE *fp = fopen(filename,"r"); // open the file to read
 
+  // -------------COUNT AMOUNT OF CELLS IN FILE-----------------
+  
   // want to know how large the file; i.e how many cells are we dealing with?
   unsigned long linecount = 0;
   while(!feof(fp)){ //while we are not at the end of the file
@@ -31,113 +32,155 @@ void parsefile(){
     }
   }
   printf("lines in file: %lu\n",linecount);
-  rewind(fp); // go back to beginning of file
   fclose(fp);
 
   // Now, we want to parse as many cells as possible but not use more than 1GiB memory at any one time, so since we now know how many lines there are to parse we want to split them up
   // into manageable chunks and pairwise compare them to calculate distances. If we do this for a certain chunksize we can guarantee that we are not breaking the memory requirement
-  float chunksize=5.0;//100.0; // chosen so that we meet memory requirements
   
+  int chunksize=5;//ciel(linecount/200.0) // chosen so that we meet memory requirements
   size_t rest=0;
-  int chunks=ciel(linecount/chunksize);
-  if(linecount%chunksize!=0) rest=linecount%chunksize;    //take the rest in a separate chunk
-  int chunksize_loc1;
-  int chunksize_loc;
+  int chunks=(int)ceil((double)(linecount/chunksize)); // should be at least 200 to ensure correct memory usage
   
+  if(linecount%chunksize!=0) rest=linecount%chunksize;    //take the rest in a separate chunk
+  
+  // chunksizes to use when we add the rest.
+  int chunksize_outer;
+  int chunksize_inner;
+
+  //------------ LOOP OVER CHUNKS-------------
   for(size_t ix=0;ix<chunks;ix++){
 
     // take chunk ix
 
-
-    chunksize_loc1=chunksize;
-      if(ix==chunks-1){
-       chunksize_loc1+=rest;
-      }
-      // READ IN CHUNK 1
-      fp = fopen(filename,"r"); // open the file to read
-
-      //jump to correct location in file
-      fseek(fp,24*chunksize*ix,SEEK_SET);
-      float cells1[chunksize_loc1][num_points]; // stack allocated cells
-      // parallellize?
-      for(size_t i=0;i<chunksize_loc1;i++){
-	// ok, but we could use a similar parse to how we parse args since we know exactly how the numbers are arranged! Confirmed faster by Martin!
-	fscanf(fp, "%f %f %f",&cells1[i][0],&cells1[i][1],&cells1[i][2]); 
-	for(size_t j=0;j<3;j++){
-	  printf("cells: %f\n",cells1[i][j]); // check correctness
-	  }
-      }
-      fclose(fp);
+    //------------- SET CURRENT CHUNKSIZE--------------
       
-      if(ix==0&&jx==0){
-	//#pragma omp for schedule(static,chunksize/2) // how do we choose the chunk size that we schedule?? some fraction of the whole. But what do we do for huge linecounts???
-    for(size_t i=1;i<chunksize_loc1;i++){
-      for(size_t j=i+1;j<chunksize_loc1;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
-	//#pragma omp critical
-	{
-	  dist=(unsigned short)roundf(sqrtf((cells1[i][0]-cells1[j][0])*(cells1[i][0]-cells1[j][0])+
-				   (cells1[i][1]-cells1[j][1])*(cells1[i][1]-cells1[j][1])+
-					    (cells1[i][2]-cells1[j][2])*(cells1[i][2]-cells1[j][2])))*100;
-	num_dist[dist]++;
-	}
-	  printf("dist %hu\n", dist);
+    chunksize_outer=chunksize;
+    if(ix==chunks-1){
+      chunksize_outer+=rest;
+    }
+    // -------------READ IN CHUNK 1--------------
+    fp = fopen(filename,"r"); // open the file to read
+
+    //jump to correct location in file
+    fseek(fp,24*chunksize_outer*ix,SEEK_SET);
+    float cells1[chunksize_outer][num_points]; // stack allocated cells
+    // parallellize?
+    for(size_t i=0;i<chunksize_outer;i++){
+      // ok, but we could use a similar parse to how we parse args since we know exactly how the numbers are arranged! Confirmed faster by Martin!
+      fscanf(fp, "%f %f %f",&cells1[i][0],&cells1[i][1],&cells1[i][2]); 
+      for(size_t j=0;j<3;j++){
+	printf("CHUNK1 cells: %f\n",cells1[i][j]); // check correctness
       }
     }
-      }
-  
-    for(size_t jx=0;jx<chunks;jx++){
-      // take chunk jx
-  
-      chunksize_loc=chunksize;
-      if(jx==chunks-1){
-       chunksize_loc+=rest;
+    fclose(fp);
+
+      
+    //------------ LOOP OVER CHUNKS-------------  
+    for(size_t jx=ix+1;jx<chunks;jx++){ // ix+1 to make the loop go over the chunks correctly, i.e not double up on computations
+
+      //-------------- COUNT DISTANCES WITHIN CHUNK 1---------------
+	
+      if(jx==0){ //if we are at the start of a new chunk compute the distances in the chunk
+
+	{
+	  unsigned long i,j;
+	  unsigned short dist;
+	  //#pragma omp for schedule(static,chunksize/2) // how do we choose the chunk size that we schedule?? some fraction of the whole. But what do we do for huge linecounts???
+	  for(size_t i=1;i<chunksize_outer;i++){
+	    for(size_t j=i+1;j<chunksize_outer;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
+	      //#pragma omp critical
+	      {
+		// roundf to ensure correct last digit
+		dist=(unsigned short)roundf(sqrtf((cells1[i][0]-cells1[j][0])*(cells1[i][0]-cells1[j][0])+
+						  (cells1[i][1]-cells1[j][1])*(cells1[i][1]-cells1[j][1])+
+						  (cells1[i][2]-cells1[j][2])*(cells1[i][2]-cells1[j][2]))*100);
+		num_dist[dist]++;
+	      }
+	      printf("dist %hu\n", dist);
+	    }
+	  }
+	}
       }
 
-      // READ IN CHUNK 2
+      //------------- SET CURRENT CHUNKSIZE--------------
+      chunksize_inner=chunksize;
+      if(jx==chunks-1){
+	chunksize_inner+=rest;
+      }
+
+      //-------------- READ IN CHUNK 2 ----------------
+      
       fp = fopen(filename,"r"); // open the file to read
 
       //jump to correct location in file
-      fseek(fp,24*chunksize*ix,SEEK_SET);
+      fseek(fp,24*chunksize_inner*jx,SEEK_SET);
   
-      float cells[chunksize_loc][num_points]; // stack allocated cells
+      float cells[chunksize_inner][num_points]; // stack allocated cells
       // parallellize?
-      for(size_t i=0;i<chunksize_loc;i++){
+      for(size_t i=0;i<chunksize_inner;i++){
 	// ok, but we could use a similar parse to how we parse args since we know exactly how the numbers are arranged! Confirmed faster by Martin!
 	fscanf(fp, "%f %f %f",&cells[i][0],&cells[i][1],&cells[i][2]); 
 	for(size_t j=0;j<3;j++){
-	  printf("cells: %f\n",cells[i][j]); // check correctness
-	  }
-    }
+	  printf("CHUNK2 cells: %f\n",cells[i][j]); // check correctness
+	}
+      }
+      rewind(fp);
+      fclose(fp);
 
-      //    
-      //    COMPUTATION OF DISTANCE AND FREQUENCY BETWEEN CHUNKS
-      //
+      //-------------- COUNT DISTANCES WITHIN CHUNK 2---------------
+
+      if(jx==chunks-1){
+     
+        {
+	  unsigned long i,j;
+	  unsigned short dist;
+	  //#pragma omp for schedule(static,chunksize/2) // how do we choose the chunk size that we schedule?? some fraction of the whole. But what do we do for huge linecounts???
+	  for(size_t i=1;i<chunksize_inner;i++){
+	    for(size_t j=i+1;j<chunksize_inner;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
+	      //#pragma omp critical
+	      {
+		// roundf to ensure correct last digit
+		dist=(unsigned short)roundf(sqrtf((cells[i][0]-cells[j][0])*(cells[i][0]-cells[j][0])+
+						  (cells[i][1]-cells[j][1])*(cells[i][1]-cells[j][1])+
+						  (cells[i][2]-cells[j][2])*(cells[i][2]-cells[j][2]))*100);
+		num_dist[dist]++;
+	      }
+	      printf("dist %hu\n", dist);
+	    }
+	  }
+	}
+      }
+      
+      
+      
+      //------- COMPUTATION OF DISTANCE AND FREQUENCY BETWEEN CHUNKS --------------
      
       //#pragma omp parallel shared(linecount, cells) // parse the file in parallel; variables in the shared() is shared between threads
- {
-  unsigned long i,j;
-  unsigned short dist;
-  //#pragma omp for schedule(static,chunksize/2) // how do we choose the chunk size that we schedule?? some fraction of the whole. But what do we do for huge linecounts???
-    for(i=1;i<chunksize_loc1;i++){
-      for(j=1;j<chunksize_loc;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
-	//#pragma omp critical
-	{
-	  dist=(unsigned short)roundf(sqrtf((cells1[i][0]-cells[j][0])*(cells1[i][0]-cells[j][0])+
-				   (cells1[i][1]-cells[j][1])*(cells1[i][1]-cells[j][1])+
-					     (cells1[i][2]-cells[j][2])*(cells1[i][2]-cells[j][2]))*100);
-	num_dist[dist]++;
+      {
+	unsigned long i,j;
+	unsigned short dist;
+	//#pragma omp for schedule(static,chunksize/2) // how do we choose the chunk size that we schedule?? some fraction of the whole. But what do we do for huge linecounts???
+	for(i=1;i<chunksize_outer;i++){
+	  for(j=1;j<chunksize_inner;j++){ 
+	    //#pragma omp critical
+	    {
+	      // roundf to ensure correct last digit
+	      dist=(unsigned short)roundf(sqrtf((cells1[i][0]-cells[j][0])*(cells1[i][0]-cells[j][0])+
+						(cells1[i][1]-cells[j][1])*(cells1[i][1]-cells[j][1])+
+						(cells1[i][2]-cells[j][2])*(cells1[i][2]-cells[j][2]))*100);
+	      num_dist[dist]++;
+	    }
+	    printf("dist %hu\n", dist);
+	  }
 	}
-	  printf("dist %hu\n", dist);
       }
-    }
- }
 
     } // end of inner chunk loop here
-  }
+  }   // end of outer chunk loop here
 
-  fclose(fp); // close the file
-
- 
+//-----------FREE MEMORY----------
+//  free(cells);
+// free(cells1);
 
  
   // WRITE DISTANCES WITH NONZERO FREQUENCIES
@@ -145,13 +188,9 @@ void parsefile(){
     if(num_dist[i]!=0){
       printf("%.2f %d\n",i/100.0,num_dist[i]); // write in desired format
     }
- }
- // OPTIONAL THINGS TO IMPLEMENT: having a validation for the test data we have, do the parsing as short integers
-
- //
- // test correctness by writing to stdout and comparing to cell_validate
- //
-
+  }
+  
+ // OPTIONAL THINGS TO IMPLEMENT: having a validation for the test data we have, do the parsing as short int
   
  /*  PSEUDOCODE
 int numcorrect=0;
@@ -183,23 +222,21 @@ int main(int argc, char * argv[]){
     printf("The syntax for this function is '%s -t(amount of threads)'\n",argv[0]);
     return 1;
   }
-    if (argv[1][0] == '-') {
-      if (argv[1][1] == 't') {
-	thread_count = strtol(&argv[1][2],NULL,10);
-      }else{
-	printf("Incorrect flag! Wanted: 't' Given: '%c'\n",argv[1][1]);
-	return 1;
-      }
+  if (argv[1][0] == '-') {
+    if (argv[1][1] == 't') {
+      thread_count = strtol(&argv[1][2],NULL,10);
     }else{
-      printf("Incorrect flag prefix! Wanted: '-' Given: '%c'\n",argv[1][0]);
+      printf("Incorrect flag! Wanted: 't' Given: '%c'\n",argv[1][1]);
       return 1;
     }
+  }else{
+    printf("Incorrect flag prefix! Wanted: '-' Given: '%c'\n",argv[1][0]);
+    return 1;
+  }
 
-     omp_set_num_threads(thread_count);  //set number of threads
+  omp_set_num_threads(thread_count);  //set number of threads
    
-    parsefile();  // parse file and calculate distances
-    
-    printf("Result: thread count= %d\n",(int)thread_count);
+  parsefile();  // parse file and calculate distances
 
   return 0;
 }
