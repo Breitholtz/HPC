@@ -37,9 +37,9 @@ void parsefile(){
   // Now, we want to parse as many cells as possible but not use more than 1GiB memory at any one time, so since we now know how many lines there are to parse we want to split them up
   // into manageable chunks and pairwise compare them to calculate distances. If we do this for a certain chunksize we can guarantee that we are not breaking the memory requirement
   
-  int chunksize=5;//ciel(linecount/200.0) // chosen so that we meet memory requirements
+  int chunksize=3;//(int)ceil(linecount/200.0) // chosen so that we meet memory requirements
   size_t rest=0;
-  int chunks=(int)ceil((double)(linecount/chunksize)); // should be at least 200 to ensure correct memory usage
+  int chunks=(int)ceil((double)(linecount/chunksize)); // should be at least 192 to ensure correct memory usage
   
   if(linecount%chunksize!=0) rest=linecount%chunksize;    //take the rest in a separate chunk
   
@@ -49,8 +49,6 @@ void parsefile(){
 
   //------------ LOOP OVER CHUNKS-------------
   for(size_t ix=0;ix<chunks;ix++){
-
-    // take chunk ix
 
     //------------- SET CURRENT CHUNKSIZE--------------
       
@@ -62,7 +60,7 @@ void parsefile(){
     fp = fopen(filename,"r"); // open the file to read
 
     //jump to correct location in file
-    fseek(fp,24*chunksize_outer*ix,SEEK_SET);
+    fseek(fp,24*chunksize*ix,SEEK_SET); //chunksize since we don't want to jump too far with chunksize_outer
     float cells1[chunksize_outer][num_points]; // stack allocated cells
     // parallellize?
     for(size_t i=0;i<chunksize_outer;i++){
@@ -72,49 +70,53 @@ void parsefile(){
 	printf("CHUNK1 cells: %f\n",cells1[i][j]); // check correctness
       }
     }
+    rewind(fp);
     fclose(fp);
 
+    //-------------- COUNT DISTANCES WITHIN CHUNK 1---------------
+    if(ix==0){
+    {
+      unsigned long i,j;
+      unsigned short dist;
+       printf("chunksize %d\n",chunksize_outer);
+      //#pragma omp for schedule(static,chunksize/2) // how do we choose the chunk size that we schedule?? some fraction of the whole. But what do we do for huge linecounts???
+      for(i=0;i<chunksize_outer;i++){
+	for(j=i+1;j<chunksize_outer;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
+	  //#pragma omp critical
+	  {
+	    // roundf to ensure correct last digit
+	    dist=(unsigned short)roundf(sqrtf((cells1[i][0]-cells1[j][0])*(cells1[i][0]-cells1[j][0])+
+					      (cells1[i][1]-cells1[j][1])*(cells1[i][1]-cells1[j][1])+
+					      (cells1[i][2]-cells1[j][2])*(cells1[i][2]-cells1[j][2]))*100);
+	    num_dist[dist]++;
+	    
+	  }
+	  printf("INTERNAL CHUNK 1 dist %hu\n", dist);
+	}
+      }
+    }
+    }
+
+    
       
     //------------ LOOP OVER CHUNKS-------------  
     for(size_t jx=ix+1;jx<chunks;jx++){ // ix+1 to make the loop go over the chunks correctly, i.e not double up on computations
 
-      //-------------- COUNT DISTANCES WITHIN CHUNK 1---------------
-	
-      if(jx==0){ //if we are at the start of a new chunk compute the distances in the chunk
-
-	{
-	  unsigned long i,j;
-	  unsigned short dist;
-	  //#pragma omp for schedule(static,chunksize/2) // how do we choose the chunk size that we schedule?? some fraction of the whole. But what do we do for huge linecounts???
-	  for(size_t i=1;i<chunksize_outer;i++){
-	    for(size_t j=i+1;j<chunksize_outer;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
-	      //#pragma omp critical
-	      {
-		// roundf to ensure correct last digit
-		dist=(unsigned short)roundf(sqrtf((cells1[i][0]-cells1[j][0])*(cells1[i][0]-cells1[j][0])+
-						  (cells1[i][1]-cells1[j][1])*(cells1[i][1]-cells1[j][1])+
-						  (cells1[i][2]-cells1[j][2])*(cells1[i][2]-cells1[j][2]))*100);
-		num_dist[dist]++;
-	      }
-	      printf("dist %hu\n", dist);
-	    }
-	  }
-	}
-      }
 
       //------------- SET CURRENT CHUNKSIZE--------------
       chunksize_inner=chunksize;
       if(jx==chunks-1){
 	chunksize_inner+=rest;
       }
-
+      printf("chunksize %d\n",chunksize_inner);
+      
       //-------------- READ IN CHUNK 2 ----------------
       
       fp = fopen(filename,"r"); // open the file to read
 
       //jump to correct location in file
-      fseek(fp,24*chunksize_inner*jx,SEEK_SET);
-  
+      fseek(fp,24*chunksize*jx,SEEK_SET);
+      
       float cells[chunksize_inner][num_points]; // stack allocated cells
       // parallellize?
       for(size_t i=0;i<chunksize_inner;i++){
@@ -129,14 +131,13 @@ void parsefile(){
 
       //-------------- COUNT DISTANCES WITHIN CHUNK 2---------------
 
-      if(jx==chunks-1){
-     
+      if(ix==0){ // count all other chunks internal distances first  
         {
 	  unsigned long i,j;
 	  unsigned short dist;
 	  //#pragma omp for schedule(static,chunksize/2) // how do we choose the chunk size that we schedule?? some fraction of the whole. But what do we do for huge linecounts???
-	  for(size_t i=1;i<chunksize_inner;i++){
-	    for(size_t j=i+1;j<chunksize_inner;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
+	  for(i=0;i<chunksize_inner;i++){
+	    for(j=i+1;j<chunksize_inner;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
 	      //#pragma omp critical
 	      {
 		// roundf to ensure correct last digit
@@ -145,7 +146,7 @@ void parsefile(){
 						  (cells[i][2]-cells[j][2])*(cells[i][2]-cells[j][2]))*100);
 		num_dist[dist]++;
 	      }
-	      printf("dist %hu\n", dist);
+	      printf("INTERNAL CHUNK 2 dist %hu\n", dist);
 	    }
 	  }
 	}
@@ -160,8 +161,8 @@ void parsefile(){
 	unsigned long i,j;
 	unsigned short dist;
 	//#pragma omp for schedule(static,chunksize/2) // how do we choose the chunk size that we schedule?? some fraction of the whole. But what do we do for huge linecounts???
-	for(i=1;i<chunksize_outer;i++){
-	  for(j=1;j<chunksize_inner;j++){ 
+	for(i=0;i<chunksize_outer;i++){
+	  for(j=0;j<chunksize_inner;j++){ 
 	    //#pragma omp critical
 	    {
 	      // roundf to ensure correct last digit
@@ -170,7 +171,7 @@ void parsefile(){
 						(cells1[i][2]-cells[j][2])*(cells1[i][2]-cells[j][2]))*100);
 	      num_dist[dist]++;
 	    }
-	    printf("dist %hu\n", dist);
+	    printf("BETWEEN CHUNKS dist %hu\n", dist);
 	  }
 	}
       }
