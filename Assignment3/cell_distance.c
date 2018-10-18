@@ -5,14 +5,17 @@
 #include<time.h>
 size_t thread_count;
 #define num_points 3 // point amount in a cell
-#define max_cells 1024 // set to a random number for now, what should this be?
+//#define max_cells 10000000 // set to ten million for now, what should this be?
 #define max_num_freq 3466 //there is 4 numbers that decide the length(since we output with 2 decimal places)
 // we have a maximum distance of sqrt(3)*20<34.66, i.e we may have at most between 00.00 and 34.66 roughly speaking
 // and if we take one place per number we get 3466 different places in our vector to increment
 
-static int cmp(const void *p1, const void *p2){
-  return *(int*)p1 > *(int*)p2;
-}
+unsigned int num_dist[max_num_freq];// global vector to keep track of frequency for distances
+    
+/*
+  Note: we are be able to just parse the coordinates as short integers aswell since we only need to scale by a factor and cast to get the necessary precision
+  although the cast when we need to do the sqrt might be expensive; although I do not know how expensive...
+*/
 
 void parsefile(){
   
@@ -29,58 +32,119 @@ void parsefile(){
   }
   printf("lines in file: %lu\n",linecount);
   rewind(fp); // go back to beginning of file
+  fclose(fp);
 
-
-  //TODO: malloc and free these correctly to acount for large sizes
-  float cells[linecount][num_points]; //This is the array we use to store the cells coordinates NOT OK, should be put on the heap and then freed!!
+  // Now, we want to parse as many cells as possible but not use more than 1GiB memory at any one time, so since we now know how many lines there are to parse we want to split them up
+  // into manageable chunks and pairwise compare them to calculate distances. If we do this for a certain chunksize we can guarantee that we are not breaking the memory requirement
+  float chunksize=5.0;//100.0; // chosen so that we meet memory requirements
   
-  unsigned short dist[linecount][linecount]; // we store the distances as short integers as we may use the trick described above at max_num_freq; NOT OK, should be put on the heap and then freed!!
+  size_t rest=0;
+  int chunks=ciel(linecount/chunksize);
+  if(linecount%chunksize!=0) rest=linecount%chunksize;    //take the rest in a separate chunk
+  int chunksize_loc1;
+  int chunksize_loc;
+  
+  for(size_t ix=0;ix<chunks;ix++){
 
-    /*
-      Note: we are be able to just parse the coordinates as short integers aswell since we only need to scale by a factor and cast to get the necessary precision
-      although the cast when we need to do the sqrt might be expensive; although I do not know how expensive...
-    */
-  // TODO: figure out how to parallelize this
-  //#pragma omp parallel for shared(fp,linecount,cells) schedule(static, linecount/thread_count) // why doesn't this work?
-      for(size_t i=0;i<linecount;i++){
-	fscanf(fp, "%f %f %f",&cells[i][0],&cells[i][1],&cells[i][2]); // ok, but we could use a similar parse to how we parse args since we know exactly how the numbers are arranged! Confirmed faster by Martin!
+    // take chunk ix
+
+
+    chunksize_loc1=chunksize;
+      if(ix==chunks-1){
+       chunksize_loc1+=rest;
+      }
+      // READ IN CHUNK 1
+      fp = fopen(filename,"r"); // open the file to read
+
+      //jump to correct location in file
+      fseek(fp,24*chunksize*ix,SEEK_SET);
+      float cells1[chunksize_loc1][num_points]; // stack allocated cells
+      // parallellize?
+      for(size_t i=0;i<chunksize_loc1;i++){
+	// ok, but we could use a similar parse to how we parse args since we know exactly how the numbers are arranged! Confirmed faster by Martin!
+	fscanf(fp, "%f %f %f",&cells1[i][0],&cells1[i][1],&cells1[i][2]); 
+	for(size_t j=0;j<3;j++){
+	  printf("cells: %f\n",cells1[i][j]); // check correctness
+	  }
+      }
+      fclose(fp);
+      
+      if(ix==0&&jx==0){
+	//#pragma omp for schedule(static,chunksize/2) // how do we choose the chunk size that we schedule?? some fraction of the whole. But what do we do for huge linecounts???
+    for(size_t i=1;i<chunksize_loc1;i++){
+      for(size_t j=i+1;j<chunksize_loc1;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
+	//#pragma omp critical
+	{
+	  dist=(unsigned short)roundf(sqrtf((cells1[i][0]-cells1[j][0])*(cells1[i][0]-cells1[j][0])+
+				   (cells1[i][1]-cells1[j][1])*(cells1[i][1]-cells1[j][1])+
+					    (cells1[i][2]-cells1[j][2])*(cells1[i][2]-cells1[j][2])))*100;
+	num_dist[dist]++;
+	}
+	  printf("dist %hu\n", dist);
+      }
+    }
+      }
+  
+    for(size_t jx=0;jx<chunks;jx++){
+      // take chunk jx
+  
+      chunksize_loc=chunksize;
+      if(jx==chunks-1){
+       chunksize_loc+=rest;
+      }
+
+      // READ IN CHUNK 2
+      fp = fopen(filename,"r"); // open the file to read
+
+      //jump to correct location in file
+      fseek(fp,24*chunksize*ix,SEEK_SET);
+  
+      float cells[chunksize_loc][num_points]; // stack allocated cells
+      // parallellize?
+      for(size_t i=0;i<chunksize_loc;i++){
+	// ok, but we could use a similar parse to how we parse args since we know exactly how the numbers are arranged! Confirmed faster by Martin!
+	fscanf(fp, "%f %f %f",&cells[i][0],&cells[i][1],&cells[i][2]); 
 	for(size_t j=0;j<3;j++){
 	  printf("cells: %f\n",cells[i][j]); // check correctness
 	  }
     }
-      fclose(fp); // close the file
-
 
       //    
-      //    do the computation of the distance and frequency
+      //    COMPUTATION OF DISTANCE AND FREQUENCY BETWEEN CHUNKS
       //
-      
- unsigned int *num_dist=(unsigned int *)calloc(max_num_freq,sizeof(int)); // vector to keep track of frequency
- 
-#pragma omp parallel shared(linecount, cells) // parse the file in parallel; variables in the shared() is shared between threads
+     
+      //#pragma omp parallel shared(linecount, cells) // parse the file in parallel; variables in the shared() is shared between threads
  {
   unsigned long i,j;
-
-#pragma omp parallel for schedule(static,5) // how do we choose the chunk size that we schedule?? some fraction of the whole. But what do we do for huge linecounts???
-    for(i=0;i<linecount;i++){
-      for(j=i+1;j<linecount;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
-#pragma omp critical
+  unsigned short dist;
+  //#pragma omp for schedule(static,chunksize/2) // how do we choose the chunk size that we schedule?? some fraction of the whole. But what do we do for huge linecounts???
+    for(i=1;i<chunksize_loc1;i++){
+      for(j=1;j<chunksize_loc;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
+	//#pragma omp critical
 	{
-	dist[i][j]=(unsigned short)roundf(sqrtf(((cells[i][0]-cells[j][0])*(cells[i][0]-cells[j][0])+
-				   (cells[i][1]-cells[j][1])*(cells[i][1]-cells[j][1])+
-						 (cells[i][2]-cells[j][2])*(cells[i][2]-cells[j][2])))*100); // do we really need roundf???
-	  num_dist[dist[i][j]]++;
+	  dist=(unsigned short)roundf(sqrtf((cells1[i][0]-cells[j][0])*(cells1[i][0]-cells[j][0])+
+				   (cells1[i][1]-cells[j][1])*(cells1[i][1]-cells[j][1])+
+					     (cells1[i][2]-cells[j][2])*(cells1[i][2]-cells[j][2]))*100);
+	num_dist[dist]++;
 	}
-	  printf("dist %hu\n", dist[i][j]);
+	  printf("dist %hu\n", dist);
       }
     }
  }
+
+    } // end of inner chunk loop here
+  }
+
+  fclose(fp); // close the file
+
  
- // TODO: sort the arrays so we get ascending order on distances and frequencies should be sorted the same to preserve their place "next to" their respective distance
- for(unsigned long i=0;i<linecount;i++){
-      for(unsigned long j=i+1;j<linecount;j++){
-	printf("%.2f %d\n",dist[i][j]/100.0,num_dist[dist[i][j]]);
-      }
+
+ 
+  // WRITE DISTANCES WITH NONZERO FREQUENCIES
+  for(unsigned short i=0;i<max_num_freq;i++){
+    if(num_dist[i]!=0){
+      printf("%.2f %d\n",i/100.0,num_dist[i]); // write in desired format
+    }
  }
  // OPTIONAL THINGS TO IMPLEMENT: having a validation for the test data we have, do the parsing as short integers
 
@@ -102,7 +166,6 @@ printf("Result: %s %c==%s %c '%s'\n",result(i),result(i+1),validation(i),validat
 printf("Correctness %d/%d",numcorrect,amount_cells);
     */
 
-  
 }
     /*
 Observations:
