@@ -3,6 +3,7 @@
 #include<math.h>
 #include<omp.h>
 #include<time.h>
+#include<string.h>
 size_t thread_count;
 #define num_points 3 // point amount in a cell
 #define max_num_freq 3466 //there is 4 numbers that decide the length(since we output with 2 decimal places)
@@ -10,7 +11,9 @@ size_t thread_count;
 // and if we take one place per number we get 3466 different places in our vector to increment
 
 unsigned int num_dist[max_num_freq];// global vector to keep track of frequency for distances
-    
+float * cellmem;
+float * cellmem2;    
+
 /*
   Note: we are be able to just parse the coordinates as short integers aswell since we only need to scale by a factor and cast to get the necessary precision
   although the cast when we need to do the sqrt might be expensive; although I do not know how expensive...
@@ -19,7 +22,7 @@ unsigned int num_dist[max_num_freq];// global vector to keep track of frequency 
 void parsefile(){
   
   //char *filename="cell_e5";
-  char *filename="cell_test";
+   char *filename="cell_test";
   FILE *fp = fopen(filename,"r"); // open the file to read
 
   // -------------COUNT AMOUNT OF CELLS IN FILE-----------------
@@ -37,16 +40,32 @@ void parsefile(){
   // Now, we want to parse as many cells as possible but not use more than 1GiB memory at any one time, so since we now know how many lines there are to parse we want to split them up
   // into manageable chunks and pairwise compare them to calculate distances. If we do this for a certain chunksize we can guarantee that we are not breaking the memory requirement
   
-  int chunksize=3;//(int)ceil(linecount/200.0) // chosen so that we meet memory requirements
+  int chunksize=(int)ceil(linecount/200.0); // chosen so that we meet memory requirements
   size_t rest=0;
-  int chunks=(int)ceil((double)(linecount/chunksize)); // should be at least 192 to ensure correct memory usage
-  
-  if(linecount%chunksize!=0) rest=linecount%chunksize;    //take the rest in a separate chunk
+  int chunks;
+  if(chunksize>linecount){
+    chunksize=linecount;
+    chunks=1;
+  }else{
+    chunks=(int)ceil((double)(linecount/chunksize)); // should be at least 96*2=192 to ensure correct memory usage
+  }
+  rest=linecount%chunksize;    //take the rest in a separate chunk
   
   // chunksizes to use when we add the rest.
   int chunksize_outer;
   int chunksize_inner;
 
+  //--------------ALLOCATING MEMORY-------------
+  // can we be clever and get rid of the rest in here somehow?
+  cellmem2=(float *)malloc(num_points*(chunksize+rest)*sizeof(float));
+  float ** cells=(float **)malloc((chunksize+rest)*sizeof(float*));
+  
+  cellmem=(float *)malloc(num_points*(chunksize+rest)*sizeof(float));
+  float ** cells1=(float **)malloc((chunksize+rest)*sizeof(float*));
+  for(size_t i,j=0; i<(chunksize+rest);i++,j+=num_points){
+    cells1[i]=cellmem+j;
+    cells[i]=cellmem2+j;
+  }
   //------------ LOOP OVER CHUNKS-------------
   for(size_t ix=0;ix<chunks;ix++){
 
@@ -61,13 +80,13 @@ void parsefile(){
 
     //jump to correct location in file
     fseek(fp,24*chunksize*ix,SEEK_SET); //chunksize since we don't want to jump too far with chunksize_outer
-    float cells1[chunksize_outer][num_points]; // stack allocated cells
+    //   float cells1[chunksize_outer][num_points]; // stack allocated cells
     // parallellize?
     for(size_t i=0;i<chunksize_outer;i++){
       // ok, but we could use a similar parse to how we parse args since we know exactly how the numbers are arranged! Confirmed faster by Martin!
       fscanf(fp, "%f %f %f",&cells1[i][0],&cells1[i][1],&cells1[i][2]); 
-      for(size_t j=0;j<3;j++){
-	printf("CHUNK1 cells: %f\n",cells1[i][j]); // check correctness
+      for(size_t j=0;j<num_points;j++){
+	//	printf("CHUNK1 cells: %f\n",cells1[i][j]); // check correctness
       }
     }
     rewind(fp);
@@ -78,7 +97,7 @@ void parsefile(){
     {
       unsigned long i,j;
       unsigned short dist;
-       printf("chunksize %d\n",chunksize_outer);
+      //       printf("chunksize %d\n",chunksize_outer);
       //#pragma omp for schedule(static,chunksize/2) // how do we choose the chunk size that we schedule?? some fraction of the whole. But what do we do for huge linecounts???
       for(i=0;i<chunksize_outer;i++){
 	for(j=i+1;j<chunksize_outer;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
@@ -91,7 +110,7 @@ void parsefile(){
 	    num_dist[dist]++;
 	    
 	  }
-	  printf("INTERNAL CHUNK 1 dist %hu\n", dist);
+	  //printf("INTERNAL CHUNK 1 dist %hu\n", dist);
 	}
       }
     }
@@ -108,7 +127,7 @@ void parsefile(){
       if(jx==chunks-1){
 	chunksize_inner+=rest;
       }
-      printf("chunksize %d\n",chunksize_inner);
+      //printf("chunksize %d\n",chunksize_inner);
       
       //-------------- READ IN CHUNK 2 ----------------
       
@@ -117,13 +136,13 @@ void parsefile(){
       //jump to correct location in file
       fseek(fp,24*chunksize*jx,SEEK_SET);
       
-      float cells[chunksize_inner][num_points]; // stack allocated cells
+      //     float cells[chunksize_inner][num_points]; // stack allocated cells
       // parallellize?
       for(size_t i=0;i<chunksize_inner;i++){
 	// ok, but we could use a similar parse to how we parse args since we know exactly how the numbers are arranged! Confirmed faster by Martin!
 	fscanf(fp, "%f %f %f",&cells[i][0],&cells[i][1],&cells[i][2]); 
-	for(size_t j=0;j<3;j++){
-	  printf("CHUNK2 cells: %f\n",cells[i][j]); // check correctness
+	for(size_t j=0;j<num_points;j++){
+	  //printf("CHUNK2 cells: %f\n",cells[i][j]); // check correctness
 	}
       }
       rewind(fp);
@@ -146,7 +165,7 @@ void parsefile(){
 						  (cells[i][2]-cells[j][2])*(cells[i][2]-cells[j][2]))*100);
 		num_dist[dist]++;
 	      }
-	      printf("INTERNAL CHUNK 2 dist %hu\n", dist);
+	      //      printf("INTERNAL CHUNK 2 dist %hu\n", dist);
 	    }
 	  }
 	}
@@ -171,7 +190,7 @@ void parsefile(){
 						(cells1[i][2]-cells[j][2])*(cells1[i][2]-cells[j][2]))*100);
 	      num_dist[dist]++;
 	    }
-	    printf("BETWEEN CHUNKS dist %hu\n", dist);
+	    // printf("BETWEEN CHUNKS dist %hu\n", dist);
 	  }
 	}
       }
@@ -180,33 +199,58 @@ void parsefile(){
   }   // end of outer chunk loop here
 
 //-----------FREE MEMORY----------
-//  free(cells);
-// free(cells1);
-
- 
+  free(cells);
+  free(cells1);
+  free(cellmem);
+  free(cellmem2);
+  
   // WRITE DISTANCES WITH NONZERO FREQUENCIES
   for(unsigned short i=0;i<max_num_freq;i++){
     if(num_dist[i]!=0){
+      if(i/100.0<10.0){
+	printf("0%.2f %d\n",i/100.0,num_dist[i]); // write in desired format
+      }else{
       printf("%.2f %d\n",i/100.0,num_dist[i]); // write in desired format
     }
+  }
   }
   
  // OPTIONAL THINGS TO IMPLEMENT: having a validation for the test data we have, do the parsing as short int
   
- /*  PSEUDOCODE
-int numcorrect=0;
-for(size_t i=1;i<amount_cells;i+=2'){ // check both distance and frequency
-if(result(i)==validation(i)&&result(i+1)==validation(i+1)){
-printf("Result: %s %c==%s %c '%s'\n",result(i),result(i+1),validation(i),validation(i+1),"CORRECT!");
-numcorrect++;
-}else{
-printf("Result: %s %c==%s %c '%s'\n",result(i),result(i+1),validation(i),validation(i+1),"INCORRECT!");
-}
-} 
-printf("Correctness %d/%d",numcorrect,amount_cells);
-    */
+  /*
+     // read in validation file
+        //-------------- READ IN VALIDATION ----------------
+  char * filename_val="cell_validate";
+  FILE * fp2 = fopen(filename_val,"r"); // open the file to read 
+  
+  size_t linecount_val=max_num_freq;
+  // redo as mallocs if they work
+  float dists_val[linecount_val];
+  int freqs_val[linecount_val];
+  for(size_t i=0;i<linecount_val;i++){
+    if(!feof(fp2)){
+      fscanf(fp2, "%f %d",&dists_val[i],&freqs_val[i]);
+      }
+  }
+  fclose(fp2);
 
-}
+  int numcorrect=0;
+  for(size_t i=1;i<linecount_val;i++){ // check both distance and frequency
+    if(num_dist[i]!=0){
+      if((num_dist[i]-(unsigned int)freqs_val[i])==0){
+	//printf("Result: %hu %ld==%d %d '%s'\n",num_dist[i],i,freqs_val[i],(int)(100*dists_val[i]),"CORRECT!");
+	numcorrect++;
+      }else{
+	//       printf("Result: %hu %ld==%d %d '%s'\n",num_dist[i],i,freqs_val[i],(int)(100*dists_val[i]),"INCORRECT!");
+      }
+    }
+  }
+
+
+   printf("Correctness %d/%ld\n",numcorrect,linecount_val);
+  */
+    }
+
     /*
 Observations:
       - there is 24 characters in every row; for each number, 2 spaces and a newline, i.e one cell =24 bytes in characters
