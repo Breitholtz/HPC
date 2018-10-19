@@ -11,7 +11,7 @@ size_t thread_count;
 // we have a maximum distance of sqrt(3)*20<34.66, i.e we may have at most between 00.00 and 34.66 roughly speaking
 // and if we take one place per number we get 3466 different places in our vector to increment
 
-unsigned int num_dist[max_num_freq];// global vector to keep track of frequency for distances
+unsigned short num_dist[max_num_freq];// global vector to keep track of frequency for distances
 float * cellmem;
 float * cellmem2;    
 
@@ -21,9 +21,12 @@ float * cellmem2;
 */
 
 void parsefile(){
-  
-  //char *filename="cell_e5";
-   char *filename="cell_test";
+  //char *filename="cell_50";
+  //char *filename="cell_e2";
+  //char *filename="cell_e3";
+  //char *filename="cell_e4"; 
+  char *filename="cell_e5"; 
+  // char *filename="cell_test";
   FILE *fp = fopen(filename,"r"); // open the file to read
 
   // -------------COUNT AMOUNT OF CELLS IN FILE-----------------
@@ -41,25 +44,25 @@ void parsefile(){
   // Now, we want to parse as many cells as possible but not use more than 1GiB memory at any one time, so since we now know how many lines there are to parse we want to split them up
   // into manageable chunks and pairwise compare them to calculate distances. If we do this for a certain chunksize we can guarantee that we are not breaking the memory requirement
   
-  int chunksize;
+  long chunksize;
   if(linecount>max_mem_lines){// see if we will be above our max memory
-    chunksize=(int)ceil(linecount/200.0); // chosen so that we meet memory requirements
+    chunksize=max_mem_lines/2; // chosen so that we meet memory requirements
   }else{
-    chunksize=linecount;
+    chunksize=linecount/2; // choose as large as we can 
   }
-  size_t rest=0;
-  int chunks;
+  long rest;
+  long chunks;
   if(chunksize>linecount){
     chunksize=linecount;
     chunks=1;
   }else{
-    chunks=(int)ceil((double)(linecount/chunksize)); // should be at least 96*2=192 to ensure correct memory usage
+    chunks=(long)ceil((double)(linecount/chunksize)); // should be at least 96*2=192 to ensure correct memory usage
   }
   rest=linecount%chunksize;    //take the rest in a separate chunk
   
   // chunksizes to use when we add the rest.
-  int chunksize_outer;
-  int chunksize_inner;
+  long chunksize_outer;
+  long chunksize_inner;
 
   //--------------ALLOCATING MEMORY-------------
   // can we be clever and get rid of the rest in here somehow?
@@ -110,9 +113,9 @@ void parsefile(){
 	  //#pragma omp critical
 	  {
 	    // roundf to ensure correct last digit
-	    	    dist=(unsigned short)roundf(sqrtf((cells1[i][0]-cells1[j][0])*(cells1[i][0]-cells1[j][0])+
-					      (cells1[i][1]-cells1[j][1])*(cells1[i][1]-cells1[j][1])+
-					      (cells1[i][2]-cells1[j][2])*(cells1[i][2]-cells1[j][2]))*100);
+	    dist=(unsigned short)(sqrtf((cells1[i][0]-cells1[j][0])*(cells1[i][0]-cells1[j][0])+
+					(cells1[i][1]-cells1[j][1])*(cells1[i][1]-cells1[j][1])+
+					(cells1[i][2]-cells1[j][2])*(cells1[i][2]-cells1[j][2]))*100);
 	    num_dist[dist]++;
 	    
 	  }
@@ -166,9 +169,9 @@ void parsefile(){
 	      //#pragma omp critical
 	      {
 		// roundf to ensure correct last digit
-		dist=(unsigned short)roundf(sqrtf((cells[i][0]-cells[j][0])*(cells[i][0]-cells[j][0])+
+		dist=(unsigned short)(sqrtf((cells[i][0]-cells[j][0])*(cells[i][0]-cells[j][0])+
 						  (cells[i][1]-cells[j][1])*(cells[i][1]-cells[j][1])+
-						  (cells[i][2]-cells[j][2])*(cells[i][2]-cells[j][2]))*100);
+					    (cells[i][2]-cells[j][2])*(cells[i][2]-cells[j][2]))*100);
 		num_dist[dist]++;
 	      }
 	      //      printf("INTERNAL CHUNK 2 dist %hu\n", dist);
@@ -191,9 +194,9 @@ void parsefile(){
 	    //#pragma omp critical
 	    {
 	      // roundf to ensure correct last digit
-	      dist=(unsigned short)roundf(sqrtf((cells1[i][0]-cells[j][0])*(cells1[i][0]-cells[j][0])+
+	      dist=(unsigned short)(sqrtf((cells1[i][0]-cells[j][0])*(cells1[i][0]-cells[j][0])+
 						(cells1[i][1]-cells[j][1])*(cells1[i][1]-cells[j][1])+
-						(cells1[i][2]-cells[j][2])*(cells1[i][2]-cells[j][2]))*100);
+					  (cells1[i][2]-cells[j][2])*(cells1[i][2]-cells[j][2]))*100);
 	      num_dist[dist]++;
 	    }
 	    // printf("BETWEEN CHUNKS dist %hu\n", dist);
@@ -220,8 +223,7 @@ void parsefile(){
     }
   }
   }
-  
- // OPTIONAL THINGS TO IMPLEMENT: having a validation for the test data we have, do the parsing as short int
+  // OPTIONAL THINGS TO IMPLEMENT: having a validation for the test data we have, do the parsing as short int
   
   /*
      // read in validation file
