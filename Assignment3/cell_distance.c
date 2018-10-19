@@ -5,6 +5,7 @@
 #include<time.h>
 #include<string.h>
 size_t thread_count;
+#define max_mem_lines 22300000 //1024^3/(24*2) amount of allocated memory will not be larger than 1GiBi for the two chunks
 #define num_points 3 // point amount in a cell
 #define max_num_freq 3466 //there is 4 numbers that decide the length(since we output with 2 decimal places)
 // we have a maximum distance of sqrt(3)*20<34.66, i.e we may have at most between 00.00 and 34.66 roughly speaking
@@ -40,7 +41,12 @@ void parsefile(){
   // Now, we want to parse as many cells as possible but not use more than 1GiB memory at any one time, so since we now know how many lines there are to parse we want to split them up
   // into manageable chunks and pairwise compare them to calculate distances. If we do this for a certain chunksize we can guarantee that we are not breaking the memory requirement
   
-  int chunksize=(int)ceil(linecount/200.0); // chosen so that we meet memory requirements
+  int chunksize;
+  if(linecount>max_mem_lines){// see if we will be above our max memory
+    chunksize=(int)ceil(linecount/200.0); // chosen so that we meet memory requirements
+  }else{
+    chunksize=linecount;
+  }
   size_t rest=0;
   int chunks;
   if(chunksize>linecount){
@@ -104,7 +110,7 @@ void parsefile(){
 	  //#pragma omp critical
 	  {
 	    // roundf to ensure correct last digit
-	    dist=(unsigned short)roundf(sqrtf((cells1[i][0]-cells1[j][0])*(cells1[i][0]-cells1[j][0])+
+	    	    dist=(unsigned short)roundf(sqrtf((cells1[i][0]-cells1[j][0])*(cells1[i][0]-cells1[j][0])+
 					      (cells1[i][1]-cells1[j][1])*(cells1[i][1]-cells1[j][1])+
 					      (cells1[i][2]-cells1[j][2])*(cells1[i][2]-cells1[j][2]))*100);
 	    num_dist[dist]++;
