@@ -124,58 +124,58 @@ void parsefile(){
 
     
       
-    //------------ LOOP OVER CHUNKS-------------  
-    for(size_t jx=ix+1;jx<chunks;jx++){ // ix+1 to make the loop go over the chunks correctly, i.e not double up on computations
-		//------------- SET CURRENT CHUNKSIZE--------------
-		chunksize_inner=chunksize;
-		if(jx==chunks-1){
-			chunksize_inner+=rest;
-		}
-		//printf("chunksize %d\n",chunksize_inner);
-      
-		//-------------- READ IN CHUNK 2 ----------------
-      
-		fp = fopen(filename,"r"); // open the file to read
-		//jump to correct location in file
-		fseek(fp,24*chunksize*jx,SEEK_SET);
-		// parallellize?
-		for(size_t i=0;i<chunksize_inner;i++){
-			// ok, but we could use a similar parse to how we parse args since we know exactly how the numbers are arranged! Confirmed faster by Martin!
-			fscanf(fp, "%f %f %f",&cells[i][0],&cells[i][1],&cells[i][2]);
-			  //printf("CHUNK2 cells: %f, %f, %f\n",cells[i][0], cells[i][1], cells[i][2]); // check correctness
-		}
-		rewind(fp);
-		fclose(fp);
+		//------------ LOOP OVER CHUNKS-------------  
+		for(size_t jx=ix+1;jx<chunks;jx++){ // ix+1 to make the loop go over the chunks correctly, i.e not double up on computations
+			//------------- SET CURRENT CHUNKSIZE--------------
+			chunksize_inner=chunksize;
+			if(jx==chunks-1){
+				chunksize_inner+=rest;
+			}
+			//printf("chunksize %d\n",chunksize_inner);
+		  
+			//-------------- READ IN CHUNK 2 ----------------
+		  
+			fp = fopen(filename,"r"); // open the file to read
+			//jump to correct location in file
+			fseek(fp,24*chunksize*jx,SEEK_SET);
+			// parallellize?
+			for(size_t i=0;i<chunksize_inner;i++){
+				// ok, but we could use a similar parse to how we parse args since we know exactly how the numbers are arranged! Confirmed faster by Martin!
+				fscanf(fp, "%f %f %f",&cells[i][0],&cells[i][1],&cells[i][2]);
+				  //printf("CHUNK2 cells: %f, %f, %f\n",cells[i][0], cells[i][1], cells[i][2]); // check correctness
+			}
+			rewind(fp);
+			fclose(fp);
 
-		//-------------- COUNT DISTANCES WITHIN CHUNK 2---------------
+			//-------------- COUNT DISTANCES WITHIN CHUNK 2---------------
 
-			if(ix==0){ // count all other chunks internal distances first
-				#pragma omp parallel for shared(chunksize_inner, cells) private(dist, i, j) reduction(+:num_dist[:])
-				for(i=0;i<chunksize_inner-1;i++){
-					for(j=i+1;j<chunksize_inner;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
-						//roundf to ensure correct last digit  
-					  dist=(unsigned short)(sqrtf((cells[i][0]-cells[j][0])*(cells[i][0]-cells[j][0])+
-									    (cells[i][1]-cells[j][1])*(cells[i][1]-cells[j][1])+
-								      (cells[i][2]-cells[j][2])*(cells[i][2]-cells[j][2]))*100);
-						num_dist[dist]++;
+				if(ix==0){ // count all other chunks internal distances first
+					#pragma omp parallel for shared(chunksize_inner, cells) private(dist, i, j) reduction(+:num_dist[:])
+					for(i=0;i<chunksize_inner-1;i++){
+						for(j=i+1;j<chunksize_inner;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
+							//roundf to ensure correct last digit  
+						  dist=(unsigned short)(sqrtf((cells[i][0]-cells[j][0])*(cells[i][0]-cells[j][0])+
+											(cells[i][1]-cells[j][1])*(cells[i][1]-cells[j][1])+
+										  (cells[i][2]-cells[j][2])*(cells[i][2]-cells[j][2]))*100);
+							num_dist[dist]++;
+						}
+					}
+				}		
+		  
+		
+		  
+		  //------- COMPUTATION OF DISTANCE AND FREQUENCY BETWEEN CHUNKS --------------
+				#pragma omp parallel for shared(chunksize_outer, chunksize_inner, cells, cells1) private(dist, i, j) reduction(+:num_dist[:])
+				for(i=0;i<chunksize_outer;i++){
+					for(j=0;j<chunksize_inner;j++){ 
+						// roundf to ensure correct last digit
+					  dist=(unsigned short)(sqrtf((cells1[i][0]-cells[j][0])*(cells1[i][0]-cells[j][0])+
+										(cells1[i][1]-cells[j][1])*(cells1[i][1]-cells[j][1])+
+										 (cells1[i][2]-cells[j][2])*(cells1[i][2]-cells[j][2]))*100);
+						num_dist[dist]++; 
 					}
 				}
-			}		
-      
-	
-      
-      //------- COMPUTATION OF DISTANCE AND FREQUENCY BETWEEN CHUNKS --------------
-			#pragma omp parallel for shared(chunksize_outer, chunksize_inner, cells, cells1) private(dist, i, j) reduction(+:num_dist[:])
-			for(i=0;i<chunksize_outer;i++){
-				for(j=0;j<chunksize_inner;j++){ 
-					// roundf to ensure correct last digit
-				  dist=(unsigned short)(sqrtf((cells1[i][0]-cells[j][0])*(cells1[i][0]-cells[j][0])+
-								    (cells1[i][1]-cells[j][1])*(cells1[i][1]-cells[j][1])+
-								     (cells1[i][2]-cells[j][2])*(cells1[i][2]-cells[j][2]))*100);
-					num_dist[dist]++; 
-				}
-			}
-    } // end of inner chunk loop here
+		} // end of inner chunk loop here
   }   // end of outer chunk loop here
 
 //-----------FREE MEMORY----------
