@@ -11,7 +11,7 @@ size_t thread_count;
 // we have a maximum distance of sqrt(3)*20<34.66, i.e we may have at most between 00.00 and 34.66 roughly speaking
 // and if we take one place per number we get 3466 different places in our vector to increment
 
-unsigned short num_dist[max_num_freq];// global vector to keep track of frequency for distances
+unsigned long num_dist[max_num_freq];// global vector to keep track of frequency for distances
 float * cellmem;
 float * cellmem2;    
 
@@ -29,8 +29,8 @@ void parsefile(){
 	//char *filename="cell_e3";
 	//char *filename="cell_e4"; 
 	//char *filename="cell_e5"; 
-	char *filename="cell_test";
-	//char *filename="cells";
+	//char *filename="cell_test";
+	char *filename="cells";
 	FILE *fp = fopen(filename,"r"); // open the file to read
 
 	// -------------COUNT AMOUNT OF CELLS IN FILE-----------------
@@ -63,7 +63,10 @@ void parsefile(){
 	  chunks=(long)ceil((linecount/(chunksize*1.0))); // should be at least 96*2=192 to ensure correct memory usage
 	}
 	rest=linecount%chunksize;    //take the rest in the last chunk
-  
+	//printf("nbr of chunks = %d\n", chunks);
+	//printf("chunksize = %d\n", chunksize);
+	//printf("rest = %d\n", rest);
+	//printf("linecount = %d\n", linecount);
 	// chunksizes to use when we add the rest.
 	long chunksize_outer;
 	long chunksize_inner;
@@ -80,7 +83,7 @@ void parsefile(){
 		cells[i]=cellmem2+j;
 	}
 	//------------ LOOP OVER CHUNKS-------------
-	for(size_t ix=0;ix<chunks;ix++){
+	for(size_t ix=0;ix<chunks-1;ix++){
 
 		//------------- SET CURRENT CHUNKSIZE--------------
       
@@ -98,9 +101,7 @@ void parsefile(){
 		for(size_t i=0;i<chunksize_outer;i++){
 			// ok, but we could use a similar parse to how we parse args since we know exactly how the numbers are arranged! Confirmed faster by Martin!
 			fscanf(fp, "%f %f %f",&cells1[i][0],&cells1[i][1],&cells1[i][2]); 
-			for(size_t j=0;j<num_points;j++){
-			  	printf("CHUNK1 cells: %f\n",cells1[i][j]); // check correctness
-			}
+			  	//printf("CHUNK1 cells: %f, %f, %f\n",cells1[i][0], cells1[i][1], cells1[i][2]); // check correctness
 		}
 		rewind(fp);
 		fclose(fp);
@@ -110,18 +111,12 @@ void parsefile(){
 			//printf("chunksize %d\n",chunksize_outer);
 			#pragma omp parallel for shared(chunksize_outer, cells1) private(dist, i, j) reduction(+:num_dist[:])
 			//#pragma omp for schedule(static) private(dist, i, j)// how do we choose the chunk size that we schedule?? some fraction of the whole. But what do we do for huge linecounts???
-			for(i=0;i<chunksize_outer;i++){
+			for(i=0;i<chunksize_outer-1;i++){
 				for(j=i+1;j<chunksize_outer;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
 					// roundf to ensure correct last digit
-				  	  printf("%f\n",sqrtf((cells1[i][0]-cells1[j][0])*(cells1[i][0]-cells1[j][0])+
-				  		      (cells1[i][1]-cells1[j][1])*(cells1[i][1]-cells1[j][1])+
-				  		      (cells1[i][2]-cells1[j][2])*(cells1[i][2]-cells1[j][2]))*100);
-				  
-					  dist=(unsigned short)(roundf(sqrtf((cells1[i][0]-cells1[j][0])*(cells1[i][0]-cells1[j][0])+
+					  dist=(unsigned short)(sqrtf((cells1[i][0]-cells1[j][0])*(cells1[i][0]-cells1[j][0])+
 						(cells1[i][1]-cells1[j][1])*(cells1[i][1]-cells1[j][1])+
-									     (cells1[i][2]-cells1[j][2])*(cells1[i][2]-cells1[j][2]))*100));
-				  //printf("%hu\n",dist);
-				
+									     (cells1[i][2]-cells1[j][2])*(cells1[i][2]-cells1[j][2]))*100);
 					num_dist[dist]++; 
 					}
 				}
@@ -147,9 +142,7 @@ void parsefile(){
 		for(size_t i=0;i<chunksize_inner;i++){
 			// ok, but we could use a similar parse to how we parse args since we know exactly how the numbers are arranged! Confirmed faster by Martin!
 			fscanf(fp, "%f %f %f",&cells[i][0],&cells[i][1],&cells[i][2]);
-			for(size_t j=0;j<num_points;j++){
-			  //printf("CHUNK2 cells: %f\n",cells[i][j]); // check correctness
-			  		}
+			  //printf("CHUNK2 cells: %f, %f, %f\n",cells[i][0], cells[i][1], cells[i][2]); // check correctness
 		}
 		rewind(fp);
 		fclose(fp);
@@ -158,18 +151,12 @@ void parsefile(){
 
 			if(ix==0){ // count all other chunks internal distances first
 				#pragma omp parallel for shared(chunksize_inner, cells) private(dist, i, j) reduction(+:num_dist[:])
-				for(i=0;i<chunksize_inner;i++){
+				for(i=0;i<chunksize_inner-1;i++){
 					for(j=i+1;j<chunksize_inner;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
-						//roundf to ensure correct last digit
-					  printf("%f\n",sqrtf((cells[i][0]-cells[j][0])*(cells[i][0]-cells[j][0])+
-						      (cells[i][1]-cells[j][1])*(cells[i][1]-cells[j][1])+
-						      (cells[i][2]-cells[j][2])*(cells[i][2]-cells[j][2]))*100);
-				  
-					  dist=(unsigned short)(roundf(sqrtf((cells[i][0]-cells[j][0])*(cells[i][0]-cells[j][0])+
+						//roundf to ensure correct last digit  
+					  dist=(unsigned short)(sqrtf((cells[i][0]-cells[j][0])*(cells[i][0]-cells[j][0])+
 									    (cells[i][1]-cells[j][1])*(cells[i][1]-cells[j][1])+
-								      (cells[i][2]-cells[j][2])*(cells[i][2]-cells[j][2]))*100));
-					  printf("%hu\n",dist);
-				
+								      (cells[i][2]-cells[j][2])*(cells[i][2]-cells[j][2]))*100);
 						num_dist[dist]++;
 					}
 				}
@@ -182,13 +169,9 @@ void parsefile(){
 			for(i=0;i<chunksize_outer;i++){
 				for(j=0;j<chunksize_inner;j++){ 
 					// roundf to ensure correct last digit
-				  printf("%f\n",sqrtf((cells1[i][0]-cells[j][0])*(cells1[i][0]-cells[j][0])+
-						      (cells1[i][1]-cells[j][1])*(cells1[i][1]-cells[j][1])+
-						      (cells1[i][2]-cells[j][2])*(cells1[i][2]-cells[j][2]))*100);
-				  dist=(unsigned short)(roundf(sqrtf((cells1[i][0]-cells[j][0])*(cells1[i][0]-cells[j][0])+
+				  dist=(unsigned short)(sqrtf((cells1[i][0]-cells[j][0])*(cells1[i][0]-cells[j][0])+
 								    (cells1[i][1]-cells[j][1])*(cells1[i][1]-cells[j][1])+
-								     (cells1[i][2]-cells[j][2])*(cells1[i][2]-cells[j][2]))*100));
-				   printf("%hu\n",dist);
+								     (cells1[i][2]-cells[j][2])*(cells1[i][2]-cells[j][2]))*100);
 					num_dist[dist]++; 
 				}
 			}
@@ -211,7 +194,12 @@ void parsefile(){
 			}
 		}
 		}
-		printf("freq 94: %d\n",num_dist[94]);
+		//printf("freq 94: %d\n",num_dist[94]);
+		//long long nbrdist =0;
+		//for(i=0; i<max_num_freq;i++){
+			//nbrdist+=num_dist[i]; 
+			// }
+		//printf("nbrdist = %lld\n", nbrdist);
   // OPTIONAL THINGS TO IMPLEMENT: having a validation for the test data we have, do the parsing as short int
 }
 
