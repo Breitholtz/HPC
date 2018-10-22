@@ -7,18 +7,15 @@
 size_t thread_count;
 #define max_mem_lines 22300000 //1024^3/(24*2) amount of allocated memory will not be larger than 1GiBi for the two chunks
 #define num_points 3 // point amount in a cell
-#define max_num_freq 3466 //there is 4 numbers that decide the length(since we output with 2 decimal places)
-// we have a maximum distance of sqrt(3)*20<34.66, i.e we may have at most between 00.00 and 34.66 roughly speaking
+#define max_num_freq 3466
+
+//there is 4 numbers that decide the length(since we output with 2 decimal places)
+// we have a maximum distance of sqrt(3)*20<34.65, i.e we may have at most between 00.00 and 34.65 roughly speaking
 // and if we take one place per number we get 3466 different places in our vector to increment
 
 unsigned long num_dist[max_num_freq];// global vector to keep track of frequency for distances
 float * cellmem;
 float * cellmem2;    
-
-/*
-  Note: we are be able to just parse the coordinates as short integers aswell since we only need to scale by a factor and cast to get the necessary precision
-  although the cast when we need to do the sqrt might be expensive; although I do not know how expensive...
-*/
 
 void parsefile(){
 	unsigned long i,j;
@@ -42,7 +39,6 @@ void parsefile(){
 			linecount++; // every newline means new line in the file
 		}
 	}
-	//printf("lines in file: %lu\n",linecount);
 	fclose(fp);
 
 	// Now, we want to parse as many cells as possible but not use more than 1GiB memory at any one time, so since we now know how many lines there are to parse we want to split them up
@@ -60,19 +56,15 @@ void parsefile(){
 		chunksize=linecount;
 		chunks=1;
 	}else{
-	  chunks=(long)ceil((linecount/(chunksize*1.0))); // should be at least 96*2=192 to ensure correct memory usage
+	  chunks=(long)ceil((linecount/(chunksize*1.0))); 
 	}
 	rest=linecount%chunksize;    //take the rest in the last chunk
-	//printf("nbr of chunks = %d\n", chunks);
-	//printf("chunksize = %d\n", chunksize);
-	//printf("rest = %d\n", rest);
-	//printf("linecount = %d\n", linecount);
+
 	// chunksizes to use when we add the rest.
 	long chunksize_outer;
 	long chunksize_inner;
 
 	//--------------ALLOCATING MEMORY-------------
-	// can we be clever and get rid of the rest in here somehow?
 	cellmem2=(float *)malloc(num_points*(chunksize+rest)*sizeof(float));
 	float ** cells=(float **)malloc((chunksize+rest)*sizeof(float*));
   
@@ -96,24 +88,19 @@ void parsefile(){
 
 		//jump to correct location in file
 		fseek(fp,24*chunksize*ix,SEEK_SET); //chunksize since we don't want to jump too far with chunksize_outer
-		//   float cells1[chunksize_outer][num_points]; // stack allocated cells
-		// parallellize?
+
 		for(size_t i=0;i<chunksize_outer;i++){
 			// ok, but we could use a similar parse to how we parse args since we know exactly how the numbers are arranged! Confirmed faster by Martin!
 			fscanf(fp, "%f %f %f",&cells1[i][0],&cells1[i][1],&cells1[i][2]); 
-			  	//printf("CHUNK1 cells: %f, %f, %f\n",cells1[i][0], cells1[i][1], cells1[i][2]); // check correctness
-		}
+			}
 		rewind(fp);
 		fclose(fp);
 
 		//-------------- COUNT DISTANCES WITHIN CHUNK 1---------------
 		if(ix==0){
-			//printf("chunksize %d\n",chunksize_outer);
 			#pragma omp parallel for shared(chunksize_outer, cells1) private(dist, i, j) reduction(+:num_dist[:])
-			//#pragma omp for schedule(static) private(dist, i, j)// how do we choose the chunk size that we schedule?? some fraction of the whole. But what do we do for huge linecounts???
 			for(i=0;i<chunksize_outer-1;i++){
 				for(j=i+1;j<chunksize_outer;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
-					// roundf to ensure correct last digit
 					  dist=(unsigned short)(sqrtf((cells1[i][0]-cells1[j][0])*(cells1[i][0]-cells1[j][0])+
 						(cells1[i][1]-cells1[j][1])*(cells1[i][1]-cells1[j][1])+
 									     (cells1[i][2]-cells1[j][2])*(cells1[i][2]-cells1[j][2]))*100);
@@ -126,34 +113,32 @@ void parsefile(){
       
 		//------------ LOOP OVER CHUNKS-------------  
 		for(size_t jx=ix+1;jx<chunks;jx++){ // ix+1 to make the loop go over the chunks correctly, i.e not double up on computations
+		  
 			//------------- SET CURRENT CHUNKSIZE--------------
 			chunksize_inner=chunksize;
 			if(jx==chunks-1){
 				chunksize_inner+=rest;
 			}
-			//printf("chunksize %d\n",chunksize_inner);
 		  
 			//-------------- READ IN CHUNK 2 ----------------
 		  
-			fp = fopen(filename,"r"); // open the file to read
+			fp = fopen(filename,"r");
 			//jump to correct location in file
 			fseek(fp,24*chunksize*jx,SEEK_SET);
-			// parallellize?
+
 			for(size_t i=0;i<chunksize_inner;i++){
 				// ok, but we could use a similar parse to how we parse args since we know exactly how the numbers are arranged! Confirmed faster by Martin!
 				fscanf(fp, "%f %f %f",&cells[i][0],&cells[i][1],&cells[i][2]);
-				  //printf("CHUNK2 cells: %f, %f, %f\n",cells[i][0], cells[i][1], cells[i][2]); // check correctness
-			}
+				}
 			rewind(fp);
 			fclose(fp);
 
 			//-------------- COUNT DISTANCES WITHIN CHUNK 2---------------
 
-				if(ix==0){ // count all other chunks internal distances first
+				if(ix==0){ // count all other chunks internal distances the first time we load them
 					#pragma omp parallel for shared(chunksize_inner, cells) private(dist, i, j) reduction(+:num_dist[:])
 					for(i=0;i<chunksize_inner-1;i++){
 						for(j=i+1;j<chunksize_inner;j++){ // j=i+1 so we only calculate each distance once and we also avoid i=j since that is of no use
-							//roundf to ensure correct last digit  
 						  dist=(unsigned short)(sqrtf((cells[i][0]-cells[j][0])*(cells[i][0]-cells[j][0])+
 											(cells[i][1]-cells[j][1])*(cells[i][1]-cells[j][1])+
 										  (cells[i][2]-cells[j][2])*(cells[i][2]-cells[j][2]))*100);
@@ -168,7 +153,6 @@ void parsefile(){
 				#pragma omp parallel for shared(chunksize_outer, chunksize_inner, cells, cells1) private(dist, i, j) reduction(+:num_dist[:])
 				for(i=0;i<chunksize_outer;i++){
 					for(j=0;j<chunksize_inner;j++){ 
-						// roundf to ensure correct last digit
 					  dist=(unsigned short)(sqrtf((cells1[i][0]-cells[j][0])*(cells1[i][0]-cells[j][0])+
 										(cells1[i][1]-cells[j][1])*(cells1[i][1]-cells[j][1])+
 										 (cells1[i][2]-cells[j][2])*(cells1[i][2]-cells[j][2]))*100);
@@ -194,24 +178,8 @@ void parsefile(){
 			}
 		}
 		}
-		//printf("freq 94: %d\n",num_dist[94]);
-		//long long nbrdist =0;
-		//for(i=0; i<max_num_freq;i++){
-			//nbrdist+=num_dist[i]; 
-			// }
-		//printf("nbrdist = %lld\n", nbrdist);
-  // OPTIONAL THINGS TO IMPLEMENT: having a validation for the test data we have, do the parsing as short int
+		
 }
-
-    /*
-Observations:
-      - there is 24 characters in every row; for each number, 2 spaces and a newline, i.e one cell =24 bytes in characters
-      - we can assume that there is less than 2^32 cells; so since we may use at most 1024^3 bytes at any one time we can use 1024^3/(2^32) =1/4 bytes per cell
-        however, since every row is 24 bytes we will have to process at most 1/96th of the maximum of all cells at any one time to have enough bytes to work with
-	, i.e we may have at most 2^32/96 cells processing at any one time. This is about 44 million.
-
-      - ignoring the above and just doing the trick described in the start of the document, parsing the points as short integers and then just cast when we want to do a square root.
-     */
 
 int main(int argc, char * argv[]){
   // parse command line arguments
