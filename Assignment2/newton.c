@@ -4,7 +4,8 @@
 #include <string.h>
 #include <math.h>      
 #include <time.h>
-#define DIST 0.001
+#include <ctype.h>
+#define DIST 0.001f
 #define MAX 10000000000
 #define MAX_ITER 100
 
@@ -21,93 +22,8 @@ int * rows_done;
 int ** result;
 int Index;
 
-char color[10][13] = {"255 204 153\t", "255 255 153\t", "204 255 150\t", "153 255 204\t", "153 255 255\t", "153 204 255\t", "153 153 255\t", "204 153 255\t", "255 204 255\t", "255 153 204\t"};
+char color[10][13] = {"255 204 153 ", "255 255 153 ", "204 255 150 ", "153 255 204 ", "153 255 255 ", "153 204 255 ", "153 153 255 ", "204 153 255 ", "255 204 255 ", "255 153 204 "};
 char greyscale[MAX_ITER+1][13];
-
-void parse_args(char * args[]){
-  
-  char * rest1;
-  char * rest2;
-  char * rest3;
-
-
-  // argument 1
-  long res1;
-  long res2;
-  if(strncmp(args[1], "-t",2)==0){ // then take the rest of the string and convert to long
-    
-    char  T[strlen(args[1])-1];
-   strncpy(T,args[1]+2,strlen(args[1])-2);
-   T[strlen(args[1])-2]='\0';
-   res1 = strtol(T,&rest1,10);
-   if(strcmp(rest1,"")!=0 || res1<1){
-     printf("Invalid argument '%ld' or Junk '%s' at end of argument 1!\n",res1,rest1);
-     exit(1);
-   }else{
-     // successfully parsed
-  }
-  }else if(strncmp(args[1], "-l",2)==0){
-  char  T[strlen(args[1])-1];
-   strncpy(T,args[1]+2,strlen(args[1])-2);
-   T[strlen(args[1])-2]='\0';
-    res2 = strtol(T,&rest2,10);
-   if(strcmp(rest2,"")!=0 || res2<1){
-     printf("Invalid argument '%ld' or Junk '%s' at end of argument 2!\n",res2,rest2);
-     exit(1);
-   }else{
-     // successfully parsed
-   }  
-  }else{
-    printf("Unknown first argument!!!\n"); // unknown flag
-  exit(1);
- }
-
-
-  // argument 2
- 
- if(strncmp(args[2], "-l",2)==0){ // then take the rest of the string and convert to long
-    
-    char  T2[strlen(args[2])-1];
-   strncpy(T2,args[2]+2,strlen(args[2])-2);
-   T2[strlen(args[2])-2]='\0';
-    res2 = strtol(T2,&rest2,10);
-   if(strcmp(rest2,"")!=0 || res2<1){
-     printf("Invalid argument '%ld' or Junk '%s' at end of argument 2!\n",res2,rest2);
-     exit(1);
-   }else{
-     // successfully parsed
-   }
- }else if(strncmp(args[2], "-t",2)==0){
- char  T2[strlen(args[2])-1];
-   strncpy(T2,args[2]+2,strlen(args[2])-2);
-   T2[strlen(args[2])-2]='\0';
-   res1 = strtol(T2,&rest1,10);
-   if(strcmp(rest1,"")!=0 || res1<1){
-     printf("Invalid argument '%ld' or Junk '%s' at end of argument 1!\n",res1,rest1);
-     exit(1);
-   }else{
-     // successfully parsed
-   }
- }else{
-  printf("Unknown second argument!!!\n");
-  exit(1);
- }
-
- // argument 3    
-   long res3 = strtol(args[3],&rest3,10);
-   if(strcmp(rest3,"")!=0 || res3<1){
-     printf("Invalid argument '%ld' or Junk '%s' at end of argument 3!\n",res3,rest3);
-     exit(1);
-   }else{
-     // successfully parsed
-   }
-  
-   // Set parsed arguments to global variables
-   POWER=(int)res3;
-   SIZE=(int) res2;
-   THREADS=(int) res1;
-   return;
-}
 
 void * threaded_newton(void * args){  // void * since we want it to work with threads
           
@@ -195,7 +111,6 @@ void * writeppm(void * args) { // void * since we want it to work with threads
 	fprintf(fp2, "P3\n %d %d\n %d\n", SIZE,SIZE,MAX_ITER); // grayscale header
 
 	size_t ix=0;
-	
 	while(ix < SIZE){
 		if(rows_done[ix] != 0){
 		  //write to file
@@ -230,8 +145,25 @@ int main(int argc, char * argv[] ){
   timespec_get(&ts, TIME_UTC);
   long sec1=ts.tv_sec;
   long nsec1=ts.tv_nsec; */
-  parse_args(argv); 
+     //parse_args(argv); 
 
+  if (argc != 4) {
+    printf("Incorrect number of arguments\n");
+    return 1;
+  }
+  for (int i = 0; i < argc;i++) {
+    if (argv[i][0] == '-') {
+      if (argv[i][1] == 'l') {
+	SIZE = (int)strtol(&argv[i][2],NULL,10);
+      } else if (argv[i][1] == 't') {
+	THREADS = (int)strtol(&argv[i][2],NULL,10);
+      }
+    } else if (isdigit(argv[i][0])) {
+      POWER = (int)strtol(argv[i],NULL,10);
+    }
+  }
+
+  
     //allocate memory for matrices in order to store results
    float * initial_mat =(float *)malloc(2*sizeof(float*)*SIZE*SIZE);
    initial = (float**) malloc(2*sizeof(float*)*SIZE); // initial values to newton
@@ -275,7 +207,6 @@ int main(int argc, char * argv[] ){
      roots_exact[i][0] = cos(theta);
      roots_exact[i][1] = sin(theta);
    }
-
    //Treading
    pthread_t threads[THREADS+1]; // create one extra for writing to file   
    pthread_mutex_init(&mutex_write, NULL); // mutex for accessing the rows_done array
